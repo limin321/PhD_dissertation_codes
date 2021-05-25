@@ -1,0 +1,911 @@
+---
+title: "phenotypics"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(car)
+library(multcomp)
+library(emmeans)
+library(rcompanion)
+# following two packages for growth curve data analysis
+library(growthcurver)
+library(tidyverse)
+library(lubridate) # convert time from hh:mm:ss to hours
+library(dplyr)
+library(tidyselect)
+library(nlme)
+library(lme4)
+
+library(ggtree)
+library(treeio)
+library(Biostrings)
+library(ggmsa)
+library(ape)
+
+library(FactoMineR)  # PCA analysis package
+library(devtools)
+library(factoextra)
+
+```
+
+#############################################3
+virulence test on walnut rootstock vlach; the experiment was repeated once, each time 3 plants was inoculated for each strain.
+```{r}
+walnut_tumor <- read.table("walnut_tumor.csv", header = TRUE, sep = ",")
+str(walnut_tumor)
+
+  ggplot(walnut_tumor, aes(x=strains, y=weight, color=strains)) +
+  geom_boxplot() +
+  geom_jitter() +
+  theme(text=element_text(size=40), axis.text.x=element_text(hjust=0.5,vjust=0.5,angle=90),legend.position="none") # remove legend
+  #ylim(0,20)
+ggsave("/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter3_phenoTraits/tumor_walnut.png", width = 20, height = 20, units = "in")
+
+
+
+
+
+```
+statistic analysis of tumor weight from walnut
+```{r}
+walnut <- read.table("walnut_tumor.csv", header = TRUE, sep = ",")
+
+# remove 3 non-virulent strains,and mock
+walnut_cleand <- walnut %>% filter(!(strains %in% c("But002","SJ003","Tul002","Mock")))
+
+# model for final data analysis
+m2 <- lm(weight ~ strains, walnut_cleand) 
+qqp(residuals(m2))
+plotNormalHistogram(residuals(m2))
+
+# log transformation to m2; 普通/一般线性模型
+m2_trs <- lm(log(weight+0.5) ~ strains, walnut_cleand) 
+
+# or with following codes to check residuals
+qqp(residuals(m2_trs))
+plotNormalHistogram(residuals(m2_trs)) 
+
+anova(m2_trs)
+# categorical data use this method.
+means <- emmeans(m2_trs, specs = "strains")
+cld(means, alpha = 0.05, Letters = "abcdefghijklmn") # multiple comparison, tuky-test
+
+```
+
+statistic analysis of tumor weight from walnut
+virulenc test on Datura plants, the experiment was repeated in 3 blocks(3 benches). On each bench there were 5 plants inoculated for each strain. In total, each strain was inoculated to 15 datura plants
+```{r datura_tumor_final_codes}
+datura <- read.table("datura_tumor.csv", header = TRUE, sep = ",")
+
+# remove 3 non-virulent strains,and mock
+datura_cleand <- datura %>% filter(!(strains %in% c("But002","SJ003","Tul002","Mock")))
+
+# mixed model for final data analysis
+m2 <- lmer(weight ~ strains + block + (1|line), datura_cleand) 
+qqp(residuals(m2))
+plotNormalHistogram(residuals(m2))
+
+# Do log transformation to m2  
+m2_trs <- lmer(log(weight+0.5) ~ strains + block + (1|line), datura_cleand) 
+
+# check residuals 
+qqp(residuals(m2_trs))
+plotNormalHistogram(residuals(m2_trs)) 
+
+Anova(m2_trs)
+
+means <- emmeans(m2_trs, specs = "strains")
+cld(means, alpha = 0.05, Letters = "abcdefghijklmn") # multiple comparison
+
+```
+
+
+##########
+8 Antibiotic resistance test
+Two antibiotics S10 and VA30 are very different from others, 29 out of 30 strains are resistant to them, giving 0 diameter of inhibition zone.
+
+1. carbenicillin resistance
+```{r CB100}
+cb <- read.csv("carbenicillin.csv", header = TRUE, sep = ",")
+cb <- cb %>% filter(strains != "Yub001") # remove data points which are 0. 
+
+# create a linear model
+cbM <- lm(cb100_D ~ strains, cb)
+
+# do diagnostic of data variance
+par(mfrow = c(2,2)); plot(cbM); par(mfrow = c(1,1))
+
+anova(cbM)
+cb_mean <- emmeans(cbM, specs = "strains")
+
+cld(cb_mean, alpha = 0.05, Letters = "abcdefghijklmn")
+
+```
+
+2. chloramphenicol
+```{r C30}
+chl <- read.csv("chloramphenicol.csv", header = TRUE, sep = ",")
+chl <- chl %>% filter(strains != "Kin002")
+str(chl)
+# create a linear model
+chlM <- lm(c30_D ~ strains, chl)
+
+# do diagnostic of data variance
+par(mfrow = c(2,2)); plot(chlM); par(mfrow = c(1,1))
+
+anova(chlM)
+chl_mean <- emmeans(chlM, specs = "strains")
+
+cld(chl_mean, alpha = 0.05, Letters = "abcdefghijklmn")
+```
+
+3. ciprofloxacin
+```{r CIP}
+cip <- read.csv("ciprofloxacin.csv", header = TRUE, sep = ",")
+str(cip)
+# create a linear model
+cipM <- lm(cip_D ~ strains, cip)
+
+# do diagnostic of data variance
+par(mfrow = c(2,2)); plot(cipM); par(mfrow = c(1,1))
+
+anova(cipM)
+cip_mean <- emmeans(cipM, specs = "strains")
+
+cld(cip_mean, alpha = 0.05, Letters = "abcdefghijklmn")
+```
+
+4. erythromycin
+```{r E15}
+ery <- read.csv("erythromycin.csv", header = TRUE, sep = ",")
+str(ery)
+# create a linear model
+eryM <- lm(e15_D ~ strains, ery)
+
+# do diagnostic of data variance
+par(mfrow = c(2,2)); plot(eryM); par(mfrow = c(1,1))
+
+anova(eryM)
+ery_mean <- emmeans(eryM, specs = "strains")
+
+cld(ery_mean, alpha = 0.05, Letters = "abcdefghijklmn")
+```
+
+
+5. rifampin resistance
+```{r RA5}
+rif <- read.csv("rifampin.csv", header = TRUE, sep = ",")
+rif <- rif %>% filter(strains != "Sta003")
+str(rif)
+# create a linear model
+rifM <- lm(rif_D ~ strains, rif)
+
+# do diagnostic of data variance
+par(mfrow = c(2,2)); plot(rifM); par(mfrow = c(1,1))
+
+anova(rifM)
+rif_mean <- emmeans(rifM, specs = "strains")
+
+cld(rif_mean, alpha = 0.05, Letters = "abcdefghi")
+
+
+```
+
+
+6. tetracycline resistance
+```{r TE30}
+tec <- read.csv("tetracycline.csv", header = TRUE, sep = ",")
+str(tec)
+# create a linear model
+tecM <- lm(te30_D ~ strains, tec)
+
+# do diagnostic of data variance
+par(mfrow = c(2,2)); plot(tecM); par(mfrow = c(1,1))
+
+anova(tecM)
+tec_mean <- emmeans(tecM, specs = "strains")
+
+cld(tec_mean, alpha = 0.05, Letters = "abcdefghiklmnopqrst")
+```
+
+7. streptomycin(S10) and vancomycin(VA30)
+No statistic analysis since only one strain is resitant to each of them.
+Generate table for association analysis
+```{r}
+antibiotics <- read.csv("antibiotics.csv", header = TRUE, sep = ",")
+str(antibiotics)
+
+# save streptomycin to a csv table
+s10 <- antibiotics %>% select(1,2)
+#write.table(s10, file = "/Users/dklabuser/limin/data_analysis/phenotypic_data/csv/streptomycin.csv", sep = ",", row.names = FALSE)
+
+# save vancomycin to a csv table
+va30 <- antibiotics %>% select(1,7)
+#write.table(va30, file = "/Users/dklabuser/limin/data_analysis/phenotypic_data/csv/vancomycin.csv", sep = ",", row.names = FALSE)
+
+```
+
+
+##############################################
+K84 test
+```{r}
+k84 <- read.csv("k84.csv", header = TRUE, sep = ",")
+str(k84)
+k84 <- k84 %>% filter(k84_D != 0)
+# create a linear model
+k84M <- lm(k84_D ~ strains, k84)
+
+# do diagnostic of data variance
+par(mfrow = c(2,2)); plot(k84M); par(mfrow = c(1,1))
+
+anova(k84M)
+k84_mean <- emmeans(k84M, specs = "strains")
+
+cld(k84_mean, alpha = 0.05, Letters = "abcdefg")
+```
+
+#############################################
+motility test
+```{r}
+mot <- read.csv("motility.csv", header = TRUE, sep = ",")
+str(mot)
+# create a linear model
+motM <- lm(mot_48h ~ strains, mot)
+
+# do diagnostic of data variance
+par(mfrow = c(2,2)); plot(motM); par(mfrow = c(1,1))
+
+anova(motM)
+mot_mean <- emmeans(motM, specs = "strains")
+
+cld(mot_mean, alpha = 0.05, Letters = "abcdefghiklmnopqrst")
+```
+
+########################################################
+GROWTH RATE ANALYSIS
+```{r agro growth rate}
+tsb1 <- read.table("box3_tsb_48hrs.csv", header = FALSE, sep = ",")
+
+# extract table only including the obsorbance.
+Table <- matrix(0, 98, 146)
+for(i in 2:99){
+  colname <- paste("V", i, sep = "")
+  newcolumn <- tsb1[40:185,colname]
+  Table[i-1,] <- newcolumn
+}
+
+Table <- t(Table)
+str(Table)
+Table <- as.data.frame(Table)
+# clean table, and rename column names
+Table <- Table[,-2]
+#str(Table)
+namescol <- Table[1,]
+colnames(Table) <- namescol
+Tab1 <- Table[-1,]
+
+# convert Time format to secons then to hours
+Tab1$Time <- (period_to_seconds(hms(Tab1$Time))/60/60)
+
+# change column name from Time to time, and column A4 as blank
+names(Tab1)[names(Tab1) == "Time"] <- "time"
+names(Tab1)[names(Tab1) == "H12"] <- "blank"
+# create a vector storing wells where agro grows and time and blank column
+bch1 <- c("time","blank","A1","A2","A3","A5","A6","A7","A9","A10","A11","C1","C2","C3","C5","C6","C7","C9","C10","C11","E1","E2","E3","E5","E6","E7","G1","G2","G3","G5","G6","G7")
+
+# remove other extra blank columns
+Tab1 <- Tab1[,colnames(Tab1) %in% bch1]
+bch2 <- c("blank","A1","A2","A3","A5","A6","A7","A9","A10","A11","C1","C2","C3","C5","C6","C7","C9","C10","C11","E1","E2","E3","E5","E6","E7","G1","G2","G3","G5","G6","G7")
+
+# time column is already double type, the following for loop change convert the rest table contents to numberic
+for (i in bch2){
+  Tab1[i] <- as.numeric(unlist(Tab1[i]))
+}
+
+# After the previous preparation, Tab1 one is ready for growthcurver analysis
+
+Tab1$time <- round(Tab1$time, 2)
+Tab1 <- Tab1[1:110,]
+#colnames(Tab1)
+
+# analyze the whole plate and remove the blank row
+t1 <- SummarizeGrowthByPlate(Tab1, bg_correct = "blank")[-31,]
+tsb_box3 <- c("C58_1","C58_2","C58_3","SJ003_1","SJ003_2","SJ003_3","Sta004_1","Sta004_2","Sta004_3","Sut002_1","Sut002_2","Sut002_3","Sta001_1","Sta001_2","Sta001_3","Sta005_1","Sta005_2","Sta005_3","SJ001_1","SJ001_2","SJ001_3","Sta002_1","Sta002_2","Sta002_3","SJ002_1","SJ002_2","SJ002_3","Sta003_1","Sta003_2","Sta003_3")
+t1$sample <- tsb_box3
+#write.table(t1, file = "/Users/dklabuser/limin/data_analysis/phenotypic_data/round3_growth_curveData/growthcurver_outputs/tsb_box3.csv", row.names = FALSE, col.names = TRUE, sep = ",")
+```
+
+The following two chunks will run the 6 csv files at one time.
+box1, box2, box3, 10 agro strains for each box, the order of 10 strains in both tsb and AB medium are the same.
+```{r}
+box3 <- c("C58","C58","C58","SJ003","SJ003","SJ003","Sta004","Sta004","Sta004","Sut002","Sut002","Sut002","Sta001","Sta001","Sta001","Sta005","Sta005","Sta005","SJ001","SJ001","SJ001","Sta002","Sta002","Sta002","SJ002","SJ002","SJ002","Sta003","Sta003","Sta003")
+
+box2 <- c("Tul001","Tul001","Tul001","Teh001","Teh001","Teh001","Yub001","Yub001","Yub001","Tul002","Tul002","Tul002","Teh002","Teh002","Teh002","Yub002","Yub002","Yub002","Tul003","Tul003","Tul003","Yol001","Yol001","Yol001","Tul004","Tul004","Tul004","Yol002","Yol002","Yol002")
+
+box1 <- c("CC001","CC001","CC001","Sut001","Sut001","Sut001","Kin002","Kin002","Kin002","CL001","CL001","CL001","Gle001","Gle001","Gle001","Kin003","Kin003","Kin003","But001","But001","But001","Gle002","Gle002","Gle002","But002","But002","But002","Kin001","Kin001","Kin001")
+bx <-list(box1=box1, box2=box2,box3=box3)
+
+```
+
+
+```{r}
+# create a vector for 6 excel tables
+tabnames <- c("box1_AB_72hrs","box2_AB_72hrs","box3_AB_72hrs","box1_tsb_72hrs","box2_tsb_72hrs","box3_tsb_48hrs")
+for (tab in tabnames){
+  a <- unlist(strsplit(tab,"_"))[1] # a will be assigned a vector.
+  c <- a # save a to a new object called c, which is used as a name when saving results.  
+  b <- unlist(strsplit(tab,"_"))[2]
+
+  filen <- paste0("/Users/dklabuser/limin/data_analysis/phenotypic_data/round3_growth_curveData/", tab, ".csv")
+tsb1 <- read.table(filen, header = FALSE, sep = ",")
+
+# prepare path to save the data
+lk <- "/Users/dklabuser/limin/data_analysis/phenotypic_data/round3_growth_curveData/growthcurver_outputs/"
+pathTable <- paste0(lk,c,"_",b,".csv")
+pathPlot <- paste0(lk,c,"_",b,".png")
+
+# extract table only including the absorbance.
+Table <- matrix(0, 98, 146)
+for(i in 2:99){
+  colname <- paste("V", i, sep = "")
+  newcolumn <- tsb1[40:185,colname]
+  Table[i-1,] <- newcolumn
+}
+
+Table <- t(Table)
+Table <- as.data.frame(Table)
+
+
+# clean table, and rename column names
+Table <- Table[,-2]
+namescol <- Table[1,]
+colnames(Table) <- namescol
+Tab1 <- Table[-1,]
+
+# convert Time format to seconds, then to hours
+Tab1$Time <- (period_to_seconds(hms(Tab1$Time))/60/60)
+
+# change column name from Time to time, and last column as blank
+names(Tab1)[names(Tab1) == "Time"] <- "time"
+names(Tab1)[names(Tab1) == "H12"] <- "blank"
+
+# create a vector storing wells where agro grows and time and blank column, this is based on my exp design, I culture 10 isolate each time.
+bch1 <- c("time","blank","A1","A2","A3","A5","A6","A7","A9","A10","A11","C1","C2","C3","C5","C6","C7","C9","C10","C11","E1","E2","E3","E5","E6","E7","G1","G2","G3","G5","G6","G7")
+
+# remove other extra blank columns
+Tab1 <- Tab1[,colnames(Tab1) %in% bch1]
+
+# create bch2 vector to convert them to numneric data type, using following for loop.
+bch2 <- c("blank","A1","A2","A3","A5","A6","A7","A9","A10","A11","C1","C2","C3","C5","C6","C7","C9","C10","C11","E1","E2","E3","E5","E6","E7","G1","G2","G3","G5","G6","G7")
+
+# time column is already double type, the following for loop change convert the rest table contents to numberic
+for (i in bch2){
+  #print(i)
+  Tab1[i] <- as.numeric(unlist(Tab1[i]))
+}
+
+# After the previous preparation, Tab1 one is ready for growthcurve analysis
+
+Tab1$time <- round(Tab1$time, 2)
+Tab1 <- Tab1[1:110,]
+
+# analyze the whole plate and remove the blank row
+t1 <- SummarizeGrowthByPlate(Tab1, bg_correct = "blank")[-31,]
+SummarizeGrowthByPlate(Tab1, plot_fit = TRUE, plot_file = pathPlot) # save to pdf failed.
+
+# this loop is to assign real sample names to vector a created in the very beginning.
+for (i in 1:3){
+  nm <- names(bx)[i]
+  ifelse (a == nm,a <- unlist(bx[i]), print("KO")) # if statement in r needs to specify both true and false condition
+}
+
+# rename sample column using real sample name created from for loop, this column actually becomes a row names column.
+t1$sample <- a
+
+# save the result dataframe to a table
+#write.table(t1, file = pathTable, row.names = FALSE, col.names = TRUE, sep = ",")
+}
+
+```
+the above code able to do the analysis, however, failed to generate pdf plot, and only 5 graphs can be printed in R.
+
+
+plot growth rate and doubling time.
+First merge result tables from the same medium
+```{r}
+# prepare 3 data frames of tsb medium
+b1tsb <- read.table("box1_tsb.csv", header = TRUE, sep = ",")
+b2tsb <- read.table("box2_tsb.csv", header = TRUE, sep = ",")
+b3tsb <- read.table("box3_tsb.csv", header = TRUE, sep = ",")
+
+b12 <- rbind(b1tsb,b2tsb)
+b123 <- rbind(b12, b3tsb)
+str(b123)
+ggplot(b123, aes(x=sample, y= r, color = sample)) +
+  geom_boxplot()+
+  geom_jitter() +
+  #ggtitle("growth rate of 30 agro in TSB medium") +
+  theme(axis.text.x=element_text(hjust=0.5,vjust=0.5,angle=90), legend.position = "none") 
+ggsave(filename = "/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter3_phenoTraits/tsb_GR.png", units = "cm", dpi = 3000)
+
+ggplot(b123, aes(x=sample, y= t_gen, color = sample)) +
+  geom_boxplot()+
+  geom_jitter() +
+  #ggtitle("double time of 30 agro in TSB medium") +
+  theme(axis.text.x=element_text(hjust=0.5,vjust=0.5,angle=90), legend.position = "none") 
+ggsave(filename = "/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter3_phenoTraits/tsb_dt.png", units = "cm", dpi = 3000)
+
+# prepare 3 data frames of AB medium
+b1AB <- read.table("box1_AB.csv", header = TRUE, sep = ",")
+b2AB <- read.table("box2_AB.csv", header = TRUE, sep = ",")
+b3AB <- read.table("box3_AB.csv", header = TRUE, sep = ",")
+
+b12AB <- rbind(b1AB,b2AB)
+b123AB <- rbind(b12AB, b3AB)
+str(b123AB)
+ggplot(b123AB, aes(x=sample, y= r, color = sample)) +
+  geom_boxplot()+
+  geom_jitter() +
+   #ggtitle("growth rate of 30 agro in AB medium") +
+  theme(axis.text.x=element_text(hjust=0.5,vjust=0.5,angle=90),legend.position = "none") 
+ggsave(filename = "/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter3_phenoTraits/AB_GR.png", units = "cm", dpi = 3000)
+ggplot(b123AB, aes(x=sample, y= t_gen, color = sample)) +
+  geom_boxplot()+
+  geom_jitter() +
+  #ggtitle("double time of 30 agro in AB medium") +
+  theme(axis.text.x=element_text(hjust=0.5,vjust=0.5,angle=90), legend.position = "none") 
+ggsave(filename = "/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter3_phenoTraits/AB_dt.png", units = "cm", dpi = 3000)
+
+```
+
+##################################################
+PHENOTYPIC DATA CORRELATION ANALYSIS
+##################################################
+prepare data for correlation analysis. Extract mean of each phenotypic data and save as a dataframe, then scatter plot two of them to see if there is linearity between two traits.
+
+```{r traits_correlation}
+#virulence
+datura <- read.table("datura_tumor.csv", header = TRUE, sep = ",")
+str(datura)
+od <- rep(1:15, 31)
+datura <- datura %>% select(1,2) %>% cbind(od) 
+datura_wide <- spread(datura,strains,weight) 
+datura_wide <- datura_wide[,-1] # remove seq col
+datura_wide <- datura_wide[,-11] # remove Mock col
+Dtumor_means <- apply(datura_wide, 2, mean) # calculate mean for each isolate
+df1 <- as.data.frame(Dtumor_means) # convert tumor weight means to a dataframe
+
+# motility
+mot <- read.csv("motility.csv", header = TRUE, sep = ",")
+a <- rep(1:3,30)
+mot <- cbind(mot, a)
+str(mot)
+mot_wide <- spread(mot,strains,mot_48h)[,-1]
+mot_mean <- apply(mot_wide, 2, mean)
+df2 <- as.data.frame(mot_mean)
+
+# carbenicillin
+cb <- read.csv("carbenicillin.csv", header = TRUE, sep = ",")
+a <- rep(1:3,30)
+cb <- cbind(cb, a)
+str(cb)
+cb_wide <- spread(cb,strains,cb100_D)[,-1]
+cb_mean <- apply(cb_wide, 2, mean)
+df3 <- as.data.frame(cb_mean)
+
+# chloramphenicol
+chl <- read.csv("chloramphenicol.csv", header = TRUE, sep = ",")
+a <- rep(1:3,30)
+chl <- cbind(chl, a)
+str(chl)
+chl_wide <- spread(chl,strains,c30_D)[,-1]
+chl_mean <- apply(chl_wide, 2, mean)
+df4 <- as.data.frame(chl_mean)
+
+# ciprofloxacin
+cip <- read.csv("ciprofloxacin.csv", header = TRUE, sep = ",")
+a <- rep(1:3,30)
+cip <- cbind(cip, a)
+str(cip)
+cip_wide <- spread(cip,strains,cip_D)[,-1]
+cip_mean <- apply(cip_wide, 2, mean)
+df5 <- as.data.frame(cip_mean)
+
+# erythromycin
+ery <- read.csv("erythromycin.csv", header = TRUE, sep = ",")
+a <- rep(1:3,30)
+ery <- cbind(ery, a)
+str(ery)
+ery_wide <- spread(ery,strains,e15_D)[,-1]
+ery_mean <- apply(ery_wide, 2, mean)
+df6 <- as.data.frame(ery_mean)
+
+# rifampin
+rif <- read.csv("rifampin.csv", header = TRUE, sep = ",")
+a <- rep(1:3,30)
+rif <- cbind(rif, a)
+str(rif)
+rif_wide <- spread(rif,strains,rif_D)[,-1]
+rif_mean <- apply(rif_wide, 2, mean)
+df7 <- as.data.frame(rif_mean)
+
+# tetracycline
+tet <- read.csv("tetracycline.csv", header = TRUE, sep = ",")
+a <- rep(1:3,30)
+tet <- cbind(tet, a)
+str(tet)
+tet_wide <- spread(tet,strains,te30_D)[,-1]
+tet_mean <- apply(tet_wide, 2, mean)
+df8 <- as.data.frame(tet_mean)
+
+# k84
+k84 <- read.csv("k84.csv", header = TRUE, sep = ",")
+a <- rep(1:3,30)
+k84 <- cbind(k84, a)
+str(k84)
+k84_wide <- spread(k84,strains,k84_D)[,-1]
+k84_mean <- apply(k84_wide, 2, mean)
+df9 <- as.data.frame(k84_mean)
+
+# growth rate in TSB medium
+df_tsb <- b123 %>% select(sample,r)
+a <- rep(1:3,30)
+df_tsb <- cbind(df_tsb,a)
+df_tsb <- spread(df_tsb,sample,r)[,-1]
+tsb_mean <- apply(df_tsb, 2, mean)
+df10 <- as.data.frame(tsb_mean)
+
+# growthrate in AB medium
+df_ab <- b123AB %>% select(sample,r)
+a <- rep(1:3,30)
+df_ab <- cbind(df_ab,a)
+df_ab <- spread(df_ab,sample,r)[,-1]
+ab_mean <- apply(df_ab, 2, mean)
+df11 <- as.data.frame(ab_mean)
+
+data <- data.frame(df1,df2,df3,df4,df5,df6,df7,df8,df9,df10,df11)
+pairs(data) # this plot the scatterplot
+cor(data, y=NULL, use = "everything",method = "pearson") # this calculate the correlation coefficient.
+
+```
+
+Means of csv files. They contain 6 antibiotics, motility, k84, growth rate in TSB and AB medium, virulence. These data can also be used for preparing inputs for association analysis DBGWAS.
+The following generate mean of csv files of two antibiotics s10, va30, which are not included in above codes
+
+s10 va30
+```{r}
+test <- va30 # s10 and va30; change three place in the code
+
+# convert each table from long to wide
+test$uni <- c(rep(1:3,10))
+str(test)
+new <- spread(test,strains, VA30) %>% select(2:31) # delete the column added as unique index; change VA30
+
+# calculate avg for each column
+davg <- apply(new, 2, mean)
+new2 <- rbind(new,davg) 
+
+new3 <- new2[-c(1:3), ] # keep avg 
+new3 <- data.frame(t(new3))
+
+# save average value to a csv file for input preparation of association analysis
+#write.table(new3, file = "/Users/dklabuser/limin/data_analysis/associationAnalysis/K-mer_association/cDBGWAS/agro30/strains30/va30.csv", row.names = TRUE, col.name = FALSE,sep = ",") # change save file each time.
+
+```
+
+Principal components analysis
+http://factominer.free.fr/factomethods/principal-components-analysis.html
+```{r}
+#install.packages("FactoMineR")
+```
+
+Run PCA analysis of all phenotypic traits to see which are the most important pheno traits
+```{r}
+# virulence- walnut tumor; 
+walnut_tumor <- read.table("walnut_tumor.csv", header = TRUE, sep = ",")
+walnut_tumor <- walnut_tumor[order(walnut_tumor$strains),] # reorder df alphabetically 
+od <- rep(1:6, 31)
+walnutumor <- walnut_tumor %>% cbind(od)
+walnut_wide <- spread(walnutumor, strains, weight)
+walnut_wide <- walnut_wide[,-1]
+walnut_wide <- walnut_wide[,-11]
+Wtumor_means <- apply(walnut_wide, 2, mean)
+df0 <- as.data.frame(Wtumor_means)
+
+# # In total 12 pheno trains were includes: datura tumor, walnut tumor, mot, k84, AB, TSB, 6 antibiotic resistance data
+# data <- data.frame(df0,df1,df2,df3,df4,df5,df6,df7,df8,df9,df10,df11)
+# pairs(data) # plot the scatterplot
+# cor(data, y=NULL, use = "everything",method = "pearson") # calculate the correlation coefficient.
+# 
+# res.pca = PCA(data, scale.unit=TRUE, ncp=5, graph=T)
+
+
+# #PCA for growth rates and antibiotic resistance
+data <- data.frame(df2,df3,df4,df5,df6,df7,df8,df9,df10,df11)
+pairs(data) # plot the scatterplot
+cor(data, y=NULL, use = "everything",method = "pearson") # calculate the correlation coefficient.
+
+res.pca = PCA(data, scale.unit=TRUE, ncp=5, graph=T)
+
+
+
+# PCA plot without containing antibiotic resistance data
+data <- data.frame(df0,df1,df2,df9,df10,df11)
+pairs(data) # plot the scatterplot
+cor(data, y=NULL, use = "everything",method = "pearson") # calculate the correlation coefficient.
+
+res.pca = PCA(data, scale.unit=TRUE, ncp=5, graph=T)
+
+
+# export PCA results as png
+png("pca_var_plot.png")
+var.plot <- fviz_pca_var(res.pca)
+print(var.plot)
+dev.off()
+
+png("pca_ind_plot.png")
+ind.plot <- fviz_pca_ind(res.pca)
+print(ind.plot)
+dev.off()
+
+```
+
+###########################################################################################################
+align phenotypic traits with pTi phylogeny trees.
+Here I include df0=walnut_tumor, df1=datura_tumor, df9=k84, df10=tsb, df11=ab. Because only 27 strains have pTi, so the non-virulent strains SJ003, But002, Tul002 were exluded from the above data frames.
+
+```{r df for aligning the pTi tree}
+# walnut tumor
+name <- rownames(df0)
+d0 <- data.frame(name)
+dfvt <- data.frame(d0,df0)
+dfwt <- dfvt %>% filter(!(name %in% c("But002", "SJ003", "Tul002")))
+
+# datura tumor
+ndf1 <- rownames(df1)
+d1 <- data.frame(ndf1)
+dfdatura <- data.frame(d1,df1)
+dfdt <- dfdatura %>% filter(!(ndf1%in% c("But002", "SJ003", "Tul002")))
+
+# dfnew <- data.frame(dfwt,dfdt)
+# write.csv(dfnew, "/Users/dklabuser/limin/data_analysis/phenotypic_data/csv/opines_tumors.csv", row.names = FALSE)
+
+# k84 test
+nk84 <- rownames(df9)
+d3 <- data.frame(nk84)
+df84 <- data.frame(d3, df9)
+dfk84 <- df84 %>% filter(!(nk84 %in% c("But002", "SJ003", "Tul002")))
+
+# tsb
+ntsb <- rownames(df10)
+d4 <- data.frame(ntsb)
+dftb <- data.frame(d4, df10)
+dftsb <- dftb %>% filter(!(ntsb %in% c("But002", "SJ003", "Tul002")))
+
+# ab
+nab <- rownames(df11)
+d5 <- data.frame(nab)
+dfa <- data.frame(d5, df11)
+dfab <- dfa %>% filter(!(nab %in% c("But002", "SJ003", "Tul002")))
+
+```
+
+
+check number of T6SS effectors with phenotypic traits
+Here I include df0=walnut_tumor, df1=datura_tumor, df9=k84, df10=tsb, df11=ab
+```{r dataframe for PCA and correlation analysis between T6SS effectors and phenoData}
+strain = c("C58","But001","But002","CL001","Kin001","Kin002","Kin003","SJ003","Sta001","Sta004","Sta005","Tul002","Yol001","Yub002","Teh002")
+num = c(17,17,11,14,13,19,13,11,10,16,15,11,11,16,11)
+
+dft6es <- data.frame(strain, num)
+rn <- dft6es[,1]
+dt6ss <- data.frame(dft6es[,2])
+row.names(dt6ss) <- rn
+
+
+# walnut tumor
+name <- rownames(df0)
+#d0 <- data.frame(name)
+#dfvt <- data.frame(d0,df0)
+dfwt_t6s <- df0 %>% filter(name %in% c("C58","But001","But002","CL001","Kin001","Kin002","Kin003","SJ003","Sta001","Sta004","Sta005","Tul002","Yol001","Yub002","Teh002"))
+
+
+# datura tumor
+ndf1 <- rownames(df1)
+#d1 <- data.frame(ndf1)
+#dfdatura <- data.frame(d1,df1)
+dfdt_t6s <- df1 %>% filter(ndf1%in% c("C58","But001","But002","CL001","Kin001","Kin002","Kin003","SJ003","Sta001","Sta004","Sta005","Tul002","Yol001","Yub002","Teh002"))
+str(dfdt)
+# k84 test
+nk84 <- rownames(df9)
+#d3 <- data.frame(nk84)
+#df84 <- data.frame(d3, df9)
+dfk84_t6s <- df9 %>% filter(nk84 %in% c("C58","But001","But002","CL001","Kin001","Kin002","Kin003","SJ003","Sta001","Sta004","Sta005","Tul002","Yol001","Yub002","Teh002"))
+
+# tsb
+ntsb <- rownames(df10)
+#d4 <- data.frame(ntsb)
+#dftb <- data.frame(d4, df10)
+dftsb_t6s <- df10 %>% filter(ntsb %in% c("C58","But001","But002","CL001","Kin001","Kin002","Kin003","SJ003","Sta001","Sta004","Sta005","Tul002","Yol001","Yub002","Teh002"))
+
+# ab
+nab <- rownames(df11)
+#d5 <- data.frame(nab)
+#dfa <- data.frame(d5, df11)
+dfab_t6s <- df11 %>% filter(nab %in% c("C58","But001","But002","CL001","Kin001","Kin002","Kin003","SJ003","Sta001","Sta004","Sta005","Tul002","Yol001","Yub002","Teh002"))
+
+
+data <- data.frame(dt6ss,dfwt_t6s,dfdt_t6s,dfk84_t6s,dftsb_t6s,dfab_t6s)
+pairs(data) # this plot the scatterplot
+cor(data, y=NULL, use = "everything",method = "pearson") # this calculate the correlation coefficient.
+
+
+
+res.pca = PCA(data, scale.unit=TRUE, ncp=5, graph=T)
+
+png("/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter3_phenoTraits/var_t6ss_pheno.png")
+var.plot <- fviz_pca_var(res.pca)
+print(var.plot)
+dev.off()
+
+png("/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter3_phenoTraits/ind_t6ss_pheno.png")
+ind.plot <- fviz_pca_ind(res.pca)
+print(ind.plot)
+dev.off()
+#ggsave("/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter3_phenoTraits/var_t6ss_pheno.png")
+#ggsave("/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter3_phenoTraits/ind_t6ss_pheno.png")
+
+
+```
+
+pTi phylogeney tree
+```{r}
+tre <- read.tree("pTi_accessory_binary_genes.fa.newick")
+n <- MRCA(tre, c("Tul003", "Teh002"))
+tre <- root(tre,node = n)
+tipName <- tre$tip.label
+
+p <- ggtree(tre, layout = "rectangular") +
+  geom_tiplab(size=2) 
+  #geom_tippoint(size=1.5)
+
+# rotate the tree for T-DNA right border alignment.
+p <- flip(p, 6, 34) %>% flip(19,32)
+p
+
+nt_sequence <- "RB_aln.fasta"
+x <- readDNAStringSet(nt_sequence)
+data1 = tidy_msa(nt_sequence)
+p1 <- p + geom_facet(geom = geom_msa, data = data1, panel = "T-DNA_RB", font = NULL, color = "Chemistry_NT") +
+  xlim_tree(2)  
+
+
+
+facet_plot(p1, panel = "walnut", data = dfwt, geom = geom_segment, aes(x=0, xend=Wtumor_means, y=y, yend=y), size=3, color="red")
+
+
+# p2 <- facet_plot(p1, panel = "Wtumor", data = dfwt, geom = geom_segment, aes(x=0, xend=Wtumor_means, y=y, yend=y), size=3, color="red") %>%
+#   facet_plot(panel = "Dtumor", data = dfdt, geom = geom_segment,aes(x=0, xend=Dtumor_means, y=y, yend=y),size=3,color="pink") %>% 
+#   facet_plot(panel = "K84_sensitivity", data = dfk84, geom = geom_segment,aes(x=0, xend=k84_mean, y=y, yend=y),size=3,color="blue") %>%
+#   facet_plot(panel = "TSB_growthRate", data = dftsb, geom = geom_segment,aes(x=0, xend=tsb_mean, y=y, yend=y),size=3,color="magenta") %>%
+#   facet_plot(panel = "AB_growthRate", data = dfab, geom = geom_segment,aes(x=0, xend=ab_mean, y=y, yend=y),size=3,color="blue")
+# 
+# p2
+# ggsave("/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter4_genetic_diversity/RB_pheno.png")
+
+
+p2 <- facet_plot(p1, panel = "Wtumor", data = dfwt, geom = geom_segment, aes(x=0, xend=Wtumor_means, y=y, yend=y), size=3, color="red") %>%
+  facet_plot(panel = "Dtumor", data = dfdt, geom = geom_segment,aes(x=0, xend=Dtumor_means, y=y, yend=y),size=3,color="pink") %>% 
+  facet_plot(panel = "K84_sensitivity", data = dfk84, geom = geom_segment,aes(x=0, xend=k84_mean, y=y, yend=y),size=3,color="blue") %>%
+  facet_plot(panel = "TSB_growthRate", data = dftsb, geom = geom_segment,aes(x=0, xend=tsb_mean, y=y, yend=y),size=3,color="magenta") %>%
+  facet_plot(panel = "AB_growthRate", data = dfab, geom = geom_segment,aes(x=0, xend=ab_mean, y=y, yend=y),size=3,color="blue")
+
+p2
+ggsave("/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter4_genetic_diversity/RB_pheno.png")
+
+
+```
+
+Perform t-test on two samples
+```{r tumor_weight comparison between opine types}
+df_tumors <- read.csv("opines_tumors.csv")
+str(df_tumors)
+
+# evaluate if equal variance
+var.test(df_tumors$walnut~ df_tumors$group)
+
+# t-test
+t.test(df_tumors$walnut~ df_tumors$group, var.equal=FALSE)
+#t.test(df_tumors$walnut~ df_tumors$group, var.equal=TRUE)
+
+
+# evaluate if true variance
+var.test(df_tumors$datura~ df_tumors$group)
+# t-test
+#t.test(df_tumors$datura~ df_tumors$group, var.equal=FALSE)
+t.test(df_tumors$datura~ df_tumors$group, var.equal=TRUE)
+
+
+ggplot(df_tumors, aes(x=group, y= walnut)) +
+  geom_boxplot() 
+  #geom_point()
+ggsave("/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter4_genetic_diversity/walnut_opine.png")
+
+ggplot(df_tumors, aes(x=group, y= datura)) +
+  geom_boxplot(outlier.shape = NA) +  # outlier.shape = NA to hide the outlier display
+  #geom_point() +
+  geom_text(x=2, y=4,label = "*", size=10, color="red") # add significant star
+ggsave("/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter4_genetic_diversity/datura_opine.png")
+```
+
+remove outliers 
+```{r}
+df_tumors <- read.csv("opines_tumors.csv")
+ggplot(df_tumors, aes(x=group, y= datura)) +
+  geom_boxplot(outlier.shape = NA) +
+  #geom_point() +
+  geom_text(x=2, y=4,label = "*", size=10, color="red")
+```
+
+
+```{r}
+# t-test to check walnut and datura has significant difference on walnut tumor size caused by the same opine type.
+df_opine <- read.csv("plants_opine_tumor.csv")
+
+# agropine
+df_ags <- df_opine[1:22,1:2]
+# check if equal variance
+var.test(df_ags$ags~df_ags$host1)
+t.test(df_ags$ags~df_ags$host1, var.equal=FALSE)
+
+ggplot(df_ags, aes(x=host1, y= ags)) +
+  geom_boxplot(outlier.shape = NA) +
+    geom_text(x=1, y=6,label = "*", size=10, color="red") # add significant star
+  #geom_point()
+ggsave("/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter4_genetic_diversity/ags_plant.png")
+
+# succinamopine
+df_sus <- df_opine[,3:4]
+var.test(df_sus$sus~df_sus$host2)
+t.test(df_sus$sus~df_sus$host2, var.equal=FALSE)
+
+ggplot(df_sus, aes(x=host2, y= sus)) +
+  geom_boxplot(outlier.shape = NA) +  # outlier.shape = NA to hide the outlier display
+  #geom_point() +
+  geom_text(x=1, y=4,label = "*", size=10, color="red") # add significant star
+ggsave("/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter4_genetic_diversity/sus_plant.png")
+```
+
+
+```{r dataframe to combine 30 strains phylogeny and phenoData}
+tre30 <- read.tree("30Agro_coreGen.tre")
+tree_rooted <- root.phylo(tre30, outgroup = "Yub001")
+tipName <- tre$tip.label
+tree_rooted
+p30 <- ggtree(tree_rooted, layout = "rectangular") +
+  geom_tiplab(size=2) 
+p30
+
+p1 <- facet_plot(p30+xlim_tree(0.3), panel = "walnut_tumor", data = dfvt, geom = geom_segment, aes(x=0, xend=walnutumor_means,y=y, yend=y),size=3,color="blue") %>% 
+  facet_plot(panel = "datura_tumor", data = dfdatura, geom = geom_segment,aes(x=0, xend=tumor_means, y=y, yend=y),size=3,color="red") %>%
+  #facet_plot(panel = "K84_sensitivity", data = df84, geom = geom_segment,aes(x=0, xend=k84_mean, y=y, yend=y),size=3,color="blue") %>% 
+  facet_plot(panel = "TSB_growthRate", data = dftb, geom = geom_segment,aes(x=0, xend=tsb_mean, y=y, yend=y),size=3,color="red") %>% 
+  facet_plot(panel = "AB_growthRate", data = dfa, geom = geom_segment,aes(x=0, xend=ab_mean, y=y, yend=y),size=3,color="blue")
+p1
+```
+
+
+
+
+
+
+
+
+
+
+
