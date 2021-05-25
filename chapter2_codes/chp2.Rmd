@@ -1,0 +1,1224 @@
+---
+title: "annoate 315agroANItree"
+output: html_document
+---
+
+```{r}
+library(dispRity)
+library(ggplot2)
+library(ggtree)
+library(treeio)
+library(tidyverse)
+library(dendextend)
+library(phylogram)
+```
+
+```{r nodes for 35 ANI groups}
+# read the tree
+tr <- read.tree("315ANI.tre")
+
+# Root the tree, first to get most recent common ancestor
+MRCA(tr, c("USDA1157", "Rm41"))
+tree_rooted <- root.phylo(tr, "Sinorhizobium meliloti", node = 497, resolve.root = TRUE )
+
+# annotate the tree based on 35 ANI group and one outgroup
+n1 <- MRCA(tree_rooted, c("str_15955", "ICMP4364")) # ANI1          G1 
+n2 <- MRCA(tree_rooted, c("S33", "FDAARGOS_525")) # ANI2   G2
+n3 <- MRCA(tree_rooted, c("SUL3scf", "CFBP6623")) # ANI3         G3
+n4 <- MRCA(tree_rooted, c("str_719389", "AS1G61")) #  ANI4        G4
+n5 <- MRCA(tree_rooted, c("CFBP6625", "CFBP6626")) # ANI5        G5
+n6 <- MRCA(tree_rooted, c("NCPPB925", "CFBP5877")) # ANI6     G6
+n7 <- MRCA(tree_rooted, c("Zutra31", "Kin003")) # ANI7            G7
+n8 <- MRCA(tree_rooted, c("str_2788", "1D132")) # ANI8      G8
+n9 <- MRCA(tree_rooted, c("AGR1_1", "YIC5082")) # ANI9           G9
+n10 <- MRCA(tree_rooted, c("Tul003", "M109cC1478")) #ANI10           G13
+n11 <- MRCA(tree_rooted, c("AF310", "CFBP5477")) # ANI11
+n12 <- MRCA(tree_rooted, c("P1_75", "YR530")) #  ANI12         A. rhizogenes
+n13 <- MRCA(tree_rooted, c("SBV_32", "DSM25558")) # ANNI13          A. rosae
+n14 <- MRCA(tree_rooted, c("KCJK1736", "DE0009")) # ANI14
+n15 <- MRCA(tree_rooted, c("Kin002", "NCPPB2659")) # ANI15        unknown2
+n16 <- MRCA(tree_rooted, c("TPD7009", "DE0067")) # ANI16          unknown3
+n17 <- MRCA(tree_rooted, c("TR3", "Eu2_1NK")) # ANI17             unknown4
+n18 <- MRCA(tree_rooted, c("CG475", "SBV_10752")) # ANI18           A.vitis_a
+n19 <- MRCA(tree_rooted, c("CG108", "T60_94")) # ANI19              A. vitis_b
+n20 <-MRCA(tree_rooted, c("F2_5", "V80_94")) # ANI20               A. vitis_c
+n21 <- MRCA(tree_rooted, c("UMA610", "SBV_302782")) # ANI21
+n22 <- MRCA(tree_rooted, c("R90", "R891")) # ANI22
+n23 <- MRCA(tree_rooted, c("RAC06", "MA01")) # ANI23
+n24 <- MRCA(tree_rooted, c("17_2069_2c", "17_2069_2b")) # ANI24
+n25 <-MRCA(tree_rooted, c("Yub001")) # ANI25
+n26 <- MRCA(tree_rooted, c("a222")) # ANI26
+n27 <- MRCA(tree_rooted, c("AOL15")) # ANI27
+n28 <- MRCA(tree_rooted, c("CG957")) # ANI28
+n29 <-MRCA(tree_rooted, c("MEJ076")) # ANI29
+n30 <- MRCA(tree_rooted, c("FPH_AR2")) # ANI30            A.larrymoorel
+n31 <- MRCA(tree_rooted, c("GBBC3284")) # ANI31
+n32 <- MRCA(tree_rooted, c("OV677")) # ANI32
+n33 <- MRCA(tree_rooted, c("YR147")) # ANI33
+n34 <-MRCA(tree_rooted, c("Y79_96")) # ANI34
+n35 <- MRCA(tree_rooted, c("OK036")) # ANI35
+otgp <- MRCA(tr, c("USDA1157", "Rm41")) # outgroup  Sinorhizobium meliloti
+
+```
+
+7 main clusters, cluster 1 is out group, cluster2: ANI23,27; cluster3: ANI26;
+```{r nodes for 4 main clusters}
+c1 <- MRCA(tree_rooted, c("str_15955", "ICMP4364", "str_719389", "AS1G61","CFBP6623","CFBP5877","Yub001")) # cluster1: A.tumefaciens comples
+c2 <- MRCA(tree_rooted, c("AF310","SBV_32","TR3","AF310","DE0067")) # cluster2: mix of agro species
+c3 <- MRCA(tree_rooted, c("YR530","OV677","17_2069_2c","YR147","OK036")) # cluster3: A.rhizogenes
+c4 <- MRCA(tree_rooted, c("CG108", "T60_94","F2_5", "V80_94","CG475","CG957")) # cluster4: A.vitis
+c5 <- MRCA(tree_rooted, c("RAC06","AOL15")) # cluster5 
+
+```
+
+
+```{r 315ANI tree rooted and annotated with ANI groups}
+p <- ggtree(tree_rooted,layout = "circular")
+treeRD <- p + 
+  geom_tiplab(align = TRUE, size = 0.5, linetype = "dotted", linesize = 0.05, color = 1) +
+  #geom_tippoint() +
+  #geom_nodepoint(color="grey", size=0.000005) +
+  geom_cladelabel(node = n1, label = "ANI1", color = "red", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n2, label = "ANI2", color = "red", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n3, label = "ANI3", color = "red", offset = 0.05, fontsize = 1) +
+  geom_cladelabel(node = n4, label = "ANI4", color = "blue", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n5, label = "ANI5", color = "blue", offset = 0.05, fontsize = 1) +
+  geom_cladelabel(node = n6, label = "ANI6", color = "red", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n7, label = "ANI7", color = "red", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n8, label = "ANI8", color = "blue", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n9, label = "ANI9", color = "blue", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n10, label = "ANI10", color = "red", offset = 0.05, fontsize = 1) +
+  geom_cladelabel(node = n11, label = "ANI11", color = "blue", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n12, label = "ANI12", color = "blue", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n13, label = "ANI13", color = "red", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n14, label = "ANI14", color = "purple", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n15, label = "ANI15", color = "purple", offset = 0.05, fontsize = 1)+
+  geom_cladelabel(node = n16, label = "ANI16", color = "purple", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n17, label = "ANI17", color = "blue", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n18, label = "ANI18", color = "red", offset = 0.05 , fontsize = 1.5) +
+  geom_cladelabel(node = n19, label = "ANI19", color = "blue", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n20, label = "ANI20", color = "blue", offset = 0.05, fontsize = 1.5) + 
+  geom_cladelabel(node = n21, label = "ANI21", color = "red", offset = 0.05, fontsize = 1) +
+  geom_cladelabel(node = n22, label = "ANI22", color = "purple", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n23, label = "ANI23", color = "red", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n24, label = "ANI24", color = "red", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n25, label = "ANI25", color = "blue", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n26, label = "ANI26", color = "purple", offset = 0.05, fontsize = 1.5)+
+  geom_cladelabel(node = n27, label = "ANI27", color = "red", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n28, label = "ANI28", color = "blue", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n29, label = "ANI29", color = "red", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n20, label = "ANI30", color = "red", offset = 0.05, fontsize = 1.5) +
+  geom_cladelabel(node = n31, label = "ANI31", color = "blue", offset = 0.05, fontsize = 1) +
+  geom_cladelabel(node = n32, label = "ANI32", color = "red", offset = 0.05, fontsize = 0.5) +
+  geom_cladelabel(node = n33, label = "ANI33", color = "blue", offset = 0.05, fontsize = 0.8) +
+  geom_cladelabel(node = n34, label = "ANI34", color = "red", offset = 0.05, fontsize = 0.5) +
+  geom_cladelabel(node = n35, label = "ANI35", color = "red", offset = 0.05, fontsize = 0.5) +
+  geom_cladelabel(node = otgp, label = "outgroup", color = "brown", offset = 0.25, fontsize = 2) +
+  geom_highlight(node = c5, fill = "gold", alpha = 0.3) + #cluster1
+  geom_highlight(node = c1, fill = "purple", alpha = 0.3) + #cluster2
+  geom_highlight(node = c2, fill = "lightblue", alpha = 0.3) + #cluster3
+  geom_highlight(node = c3, fill = "green1", alpha = 0.3) + #cluster4
+  geom_highlight(node = c4, fill = "pink", alpha = 0.3)  #cluster5
+ # xlim(0,0.3) + 
+ # ylim(0, 340) +
+#  ggtitle("The phylogeny of 311 agrobacterium strains constructed from ANI values") 
+treeRD
+
+ggsave("ANI_tree.png", dpi=800, width=6.5, height=6.5, units="in" )
+```
+
+To check if MLS tree has the same topology
+```{r MLS tree rooted and annotation}
+trMLS <- read.tree("315MLS.tre")
+
+# Root the tree, first to get most recent common ancester
+outN <- MRCA(trMLS, c("USDA1157", "Rm41"))
+# root the tree with given node number
+tree_rooted <- root.phylo(trMLS, "Sinorhizobium meliloti", node = outN, resolve.root = TRUE )
+
+# 6 clusters
+c1 <- MRCA(tree_rooted, c("LMG140","Yub001")) # cluster1: A.tumefaciens comples
+c2 <- MRCA(tree_rooted, c("FPH_AR2","SBV_31")) # cluster2: mix of agro species
+c3 <- MRCA(tree_rooted, c("17_2069_2b", "Di1462")) # cluster3: A.rhizogenes
+c4 <- MRCA(tree_rooted, c("CG1013","SF93")) # cluster4: A.vitis
+c5 <- MRCA(tree_rooted, c("RAC06","AOL15")) # cluster5
+
+# ggtree(tree_rooted,layout = "circular") +geom_tiplab(align = TRUE, size = 0.5, linetype = "dotted", linesize = 0.05, color = 1) 
+# ggsave("MLS_tree_UNNOTED.png", dpi=800, width=6.5, height=6.5, units="in" )  
+
+p <- ggtree(tree_rooted,layout = "circular")
+
+treeRD <- p + 
+  geom_tiplab(align = TRUE, size = 0.5, linetype = "dotted", linesize = 0.05, color = 1) +
+  # geom_cladelabel(node = n1, label = "ANI1", color = "red", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n2, label = "ANI2", color = "red", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n3, label = "ANI3", color = "red", offset = 0.05, fontsize = 1) +
+  # geom_cladelabel(node = n4, label = "ANI4", color = "blue", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n5, label = "ANI5", color = "blue", offset = 0.05, fontsize = 1) +
+  # geom_cladelabel(node = n6, label = "ANI6", color = "red", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n7, label = "ANI7", color = "red", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n8, label = "ANI8", color = "blue", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n9, label = "ANI9", color = "blue", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n10, label = "ANI10", color = "red", offset = 0.05, fontsize = 1) +
+  # geom_cladelabel(node = n11, label = "ANI11", color = "blue", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n12, label = "ANI12", color = "blue", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n13, label = "ANI13", color = "red", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n14, label = "ANI14", color = "purple", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n15, label = "ANI15", color = "purple", offset = 0.05, fontsize = 1)+
+  # geom_cladelabel(node = n16, label = "ANI16", color = "purple", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n17, label = "ANI17", color = "blue", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n18, label = "ANI18", color = "red", offset = 0.05 , fontsize = 1.5) +
+  # geom_cladelabel(node = n19, label = "ANI19", color = "blue", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n20, label = "ANI20", color = "blue", offset = 0.05, fontsize = 1.5) + 
+  # geom_cladelabel(node = n21, label = "ANI21", color = "red", offset = 0.05, fontsize = 1) +
+  # geom_cladelabel(node = n22, label = "ANI22", color = "purple", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n23, label = "ANI23", color = "red", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n24, label = "ANI24", color = "red", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n25, label = "ANI25", color = "blue", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n26, label = "ANI26", color = "purple", offset = 0.05, fontsize = 1.5)+
+  # geom_cladelabel(node = n27, label = "ANI27", color = "red", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n28, label = "ANI28", color = "blue", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n29, label = "ANI29", color = "red", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n20, label = "ANI30", color = "red", offset = 0.05, fontsize = 1.5) +
+  # geom_cladelabel(node = n31, label = "ANI31", color = "blue", offset = 0.05, fontsize = 1) +
+  # geom_cladelabel(node = n32, label = "ANI32", color = "red", offset = 0.05, fontsize = 0.5) +
+  # geom_cladelabel(node = n33, label = "ANI33", color = "blue", offset = 0.05, fontsize = 0.8) +
+  # geom_cladelabel(node = n34, label = "ANI34", color = "red", offset = 0.05, fontsize = 0.5) +
+  # geom_cladelabel(node = n35, label = "ANI35", color = "red", offset = 0.05, fontsize = 0.5) +
+  # geom_cladelabel(node = otgp, label = "outgroup", color = "brown", offset = 0.25, fontsize = 2) +
+  geom_highlight(node = c5, fill = "gold", alpha = 0.3) + #cluster5
+  geom_highlight(node = c4, fill = "pink", alpha = 0.3) + #cluster4
+  geom_highlight(node = c3, fill = "green1", alpha = 0.3) + #cluster3
+  geom_highlight(node = c2, fill = "lightblue", alpha = 0.3) + #cluster2
+  geom_highlight(node = c1, fill = "purple", alpha = 0.3) + #cluster1
+  # xlim(0,0.3) + 
+  # ylim(0, 340) +
+  ggtitle("The phylogeny of 311 agro strains constructed from six genes") 
+treeRD
+
+ggsave("MLS_tree.png", dpi=800, width=6.5, height=6.5, units="in" )
+```
+
+check main clusters of core genes tree
+```{r coreTree annotated}
+trCor <- read.tree("311CorGen.tre")
+
+##Root the tree, first to get most recent common ancester
+outN <- MRCA(trCor, c("AOL15", "RAC06"))
+##root the tree with given node number
+tree_rooted <- root.phylo(trCor, "outgroup", node = outN, resolve.root = TRUE )
+
+# 4 clusters
+c1 <- MRCA(tree_rooted, c("LMG140","Yub001")) # cluster1: A.tumefaciens comples
+c2 <- MRCA(tree_rooted, c("FPH_AR2","SBV_31")) # cluster2: mix of agro species
+c3 <- MRCA(tree_rooted, c("17_2069_2b", "Di1462")) # cluster3: A.rhizogenes
+c4 <- MRCA(tree_rooted, c("CG1013","SF93")) # cluster4: A.vitis
+c5 <- MRCA(tree_rooted, c("RAC06","AOL15")) # cluster5
+
+ ggtree(tree_rooted,layout = "circular") +geom_tiplab(align = TRUE, size = 0.5, linetype = "dotted", linesize = 0.05, color = 1) 
+ ggsave("Cor_tree_UNNOTED.png", dpi=800, width=6.5, height=6.5, units="in" )  
+
+p <- ggtree(tree_rooted,layout = "circular")
+
+treeRD <- p + 
+  geom_tiplab(align = TRUE, size = 0.5, linetype = "dotted", linesize = 0.05, color = 1) +
+  geom_highlight(node = c5, fill = "gold", alpha = 0.3) + #cluster5
+  geom_highlight(node = c4, fill = "pink", alpha = 0.3) + #cluster4
+  geom_highlight(node = c3, fill = "green1", alpha = 0.3) + #cluster3
+  geom_highlight(node = c2, fill = "lightblue", alpha = 0.3) + #cluster2
+  geom_highlight(node = c1, fill = "purple", alpha = 0.3) + #cluster1
+  # xlim(0,0.3) + 
+  # ylim(0, 340) +
+  ggtitle("The phylogeny of 311 agrobacterium strains constructed from core genes") 
+treeRD
+
+ggsave("Cor_tree.png", dpi=800, width=6.5, height=6.5, units="in" )
+```
+
+######################################################################################3
+TREE TOPOLOGY
+```{r ANI and MLS tree topology comparison}
+ANI <- read.tree("315ANI.tre")
+ANI_rt <- root(ANI, c("Rm41","SM11","KH46","USDA1157"))
+
+# flip ANItree, before run flip(), it needs to create a ggtree first.
+p <- ggtree(ANI_rt, layout = "rectangular")
+
+n1 <- MRCA(ANI_rt, c("a222", "AOL15"))
+n2 <- MRCA(ANI_rt, c("CG475","Yub001"))
+MRCA(ANI_rt, c("a222", "AOL15","CG475","Yub001"))
+
+ANI_flipped <- flip(p, n1, n2)
+ANI_flipped <- flip(ANI_flipped, MRCA(ANI_rt,c("CG475", "CG56")), MRCA(ANI_rt, c("A125","SBV_31")))
+
+# convert tree figure to a phylo object
+ANI_new <- as.phylo(ANI_flipped)
+ANI_new$edges
+ANI_new <- as.dendrogram.phylo(ANI_new) %>% ladder(decreasing = FALSE)
+ANI_new$edge
+write.dendrogram(ANI_new)
+
+#FLIP MLS tree
+MLS <- read.tree("315MLS.tre")
+mls_rt <- root(MLS, c("Rm41","SM11","KH46","USDA1157")) # root the tree
+
+# visualize tree using ggtree
+mls <- ggtree(mls_rt, layout = "rectangular")
+mls_flipped <- flip(mls, MRCA(mls_rt, c("RAC06","a222")), MRCA(mls_rt, c("FPH_AR2","Yub001")))
+
+# convert tree figure to phylo object
+mls_new <- as.phylo(mls_flipped)
+mls_new <- as.dendrogram.phylo(mls_new) %>% hang.dendrogram(hang = -1) %>% ladder(decreasing = FALSE)
+write.dendrogram(mls_new) 
+
+png(filename = "/Users/dklabuser/limin/data_analysis/tree_comp/ani_mls.png", width = 10000, height = 10000,units = "px")
+dendlist <- dendextend::dendlist(ANI_new, mls_new)
+# dendlist %>% dendextend::untangle(method="step1side") %>% dendextend::tanglegram(fast=FALSE, common_subtrees_color_branches = FALSE, highlight_distinct_edges=TRUE)
+dendlist %>% dendextend::tanglegram(fast=FALSE, common_subtrees_color_branches = FALSE, highlight_distinct_edges=TRUE)
+dev.off()
+```
+################ MLS--COR
+```{r MLS and COR tree topology comparison}
+# read 315ANI tree
+MLStree <- read.tree("315MLS.tre")
+
+# remove the outgroop. 
+mls311 <- drop.tip(MLStree, c("Rm41", "USDA1157", "SM11", "KH46"), trim.internal = TRUE, collapse.singles=TRUE)
+# root the tree
+mls311 <- root(mls311, "a222") 
+mls <- as.dendrogram.phylo(mls311)
+#write.dendrogram(mls, edges = FALSE)
+
+# read core gene tre
+corTree <- read.tree("/Users/dklabuser/limin/data_analysis/tree_comp/311CorGen.tre")
+corTree <- root(corTree, "a222")
+corTree <- as.dendrogram.phylo(corTree)
+write.dendrogram(corTree, edges = FALSE)
+
+png(filename = "/Users/dklabuser/limin/data_analysis/tree_comp/mls_cor.png", width = 10000, height = 10000,units = "px")
+dendlist <- dendextend::dendlist(mls, corTree)
+dendlist %>% dendextend::untangle(method="step1side") %>% dendextend::tanglegram(fast=FALSE,common_subtrees_color_branches = FALSE, highlight_distinct_edges=TRUE)
+dev.off()
+```
+
+ANI--COR
+```{r}
+# read 311 ANItree
+ani <- read.tree("311AgroANI.tre")
+is.rooted(ani)
+ani <- root(ani, "a222")
+class(ani)
+ani <- as.dendrogram.phylo(ani)
+write.dendrogram(ani, edges = FALSE)
+
+# read core gene tre
+corTree <- read.tree("311CorGen.tre")
+# root the tree
+corTree <- root(corTree, "a222")
+corTree$Nnode
+is.rooted(corTree)
+corTree <- as.dendrogram.phylo(corTree)
+write.dendrogram(corTree, edges = FALSE)
+
+png(filename = "/Users/dklabuser/limin/data_analysis/tree_comp/ani_cor.png", width = 10000, height = 10000,units = "px")
+dendlist <- dendextend::dendlist(ani, corTree)
+dendlist %>% dendextend::untangle(method="step1side") %>% dendextend::tanglegram(fast=FALSE,common_subtrees_color_branches = FALSE, highlight_distinct_edges=TRUE)
+dev.off()
+
+```
+
+##############################################
+pangenome analyses
+```{r}
+library(tidyverse)
+library(tidyr)
+library(tidyselect)
+library(SparseM)
+```
+
+# read gene_presence_absence table to R, and extract core genes info (cutoff core genes >= 95% strains)
+```{r}
+tb <- read.table("pirate_geneFam_ordered_rename_roary.csv", header = TRUE, sep = ",",fill = TRUE, blank.lines.skip = FALSE)
+dim(tb)
+
+tbcor <- filter(tb, No..isolates >= 295)
+tbcor <- tb %>% filter(No..isolates >= 295) # ths same as above code
+```
+
+Genomespecies(GS) of Agrobacterium genus
+The species level subset is created based 95%ANI table. creating a vector for each species, be aware that if strain ID starting with numbers like 5A and 1D1108, R will automatically add "X" in front of it. so need to modify strain ID accorrdingly by adding X in front of those strain names beginning with numbers.
+R CANNOT deal with variable name starting with numbers, or there is . within variable names. Only underscore is allowed in variable names.
+```{r}
+ANI1 <- c("X10MFC","S56","But001","Sta004","CL001","CNPSo675","X1D1108","SBV_303932","AS1I51","AS1E51","AS1F51","ATCC31700","SBV_38","AS1D61","AS1F61","Yub002","H13_3","RS6","B41","CFBP5771","LBA4213","Ach5","ATCC4720","WRT31","TT111","A6","str_15955","X5A","P4","ICMP4364")
+ANI2 <- c("S33a","CC001","FDAARGOS_525","CFBP5494")
+ANI3 <- c("SUL3scf","CFBP6624","CFBP6623","LC34")
+ANI4 <- c("AS1G61","ICMP5856T","B6","NCTC13543","X1D1460","EML4","Sta005","CHLDO","CCNWGS0286","ICMP6475","str_183","X12D1","X1D1526","Kerr14","Yol002","Yol001","HAMBI_105","But002","SJ002","Sta001","Sta003","SJ001","Tul001","Gle001","Sta002","Sut002","Sut001","Gle002","LMG215","CCUG3354","NCIB9042","Teh002","Tul004","CFBP5621","LAD9","NCPPB3001","G9TT510_2","LMG140","Teh001","UNC420","X224MFT","str_719389")
+ANI5 <- c("CFBP6625","CFBP6626")
+ANI6 <- c("CFBP5877","CFBP5499","NCPPB925")
+ANI7 <- c("Kin003","D14","T29","T3F4","TS45","JL28","C13","LY4","CFBP4996","TS43","NCPPB1641","GW4","Tul002","Cherry2E22","CFBP7129","YIC4121","SJ003","Zutra31","CNPSo3391","CNPSo2736","MAFF301724","RV3","AS1H51","X1D1609")
+ANI8 <- c("X1D132","X1D132b","C58","F4","NFIX02","Arqua","NFIX01","ARqua1","Kin001","N40_94","N33_94","str_12D13","X12D13","PDC82","Di1525a","ATCC31749","J_07","str_11546","str_2788")
+ANI9 <- c("AGR1_1","CFBP5506","Hayward0363","CFBP5507","YIC5082","NCPPB2657","GBBC3283")
+ANI10 <- c("Tul003","S2","CFBP6927","M109cC1478")
+ANI11 <- c("AF310","CFBP5473","CFBP5477") # lyr = larrymoorel
+# if the strain name starting with number, add X in front of it, this is to meet R requirement.
+# modify some strain names: `RO2.2`, `RO11.4`, `R10.1`, `G10.5`, `AL.21.2`,"PVM1.5","PVM10.5","R1.1","W1.1","W1.4","RO10.5","A13.1","A6.4". using underscore '_' replacing '.'
+ANI12 <- c("YR530","RO2_2","L20_94","M2_73","J5a_93","J10B_93","AS1E61","B1_74","AQ11_95","A125","A1_90","T5_73","CF263","RO11_4","I2_75","CF262","ICMP4617","Di1462","CG101_95","D1_76","D2_76","ATCC15834","LMG152","ATCC15834b","CM65_95","A4","B147_94","AS1C61","CA84_95","D108_85","B49C_83","D100_85","B4_73","K6_73","R10_1","U167_95","G10_5","H16_79","AS1J51","AL_21_2","PVM1_5","PVM10_5","D1_94","D10b_87","AR13K_71","L29_94","R1_1","W1_1","CP182_95","LMG63","N64_94","W1_4","AF44_96","AP82_95","LMG150","AS10_95","NBRC13257","ICMP7243","LMG149","RO10_5","CM80_95","CM79_95","K84","NCIB8196","A13_1","Di1411","P23_94","C16_80","K95_95","X1_95","K27","Z4_95","S32_96","A6_4","T155_95","P1_75") # rizos = rhizogenes
+ANI13 <- c("DSM25558","DSM25559","B203","SBV_31","SBV_32","SBV33","NCPPB1650")
+ANI14 <- c("DE0009","KCJK1736") # no class info in NCBI.== no info
+ANI15 <- c("Kin002","NCPPB2659","MAFF210266") 
+ANI16 <- c("DE0067","DE0068","ICMP17598","TPD7009","TPD7005","RZME10") 
+ANI17 <- c("TR3","Eu2_1NK","Eu3_2RS","A19_93","AS1A61","Eu3_2NK") 
+ANI18 <- c("CG475","CG988","AB3","AT6","CG415","CG102","CG412","ICMP10754","SBV_10752","CG1000","K306","NCPPB3554","CG516")
+ANI19 <- c("CG108","CG118","CG989","CG1013","T393_94","Rr4","CG47","Ni1","T60_94","T267_94","P86_93","AB4","CG964","CG49")
+ANI20 <- c("F2_5","CG56","T268_95","BM37_95","AV25_95","CG78","CG78b","CG678","CG1103","SF93","V80_94","AS1H41","CG98","NW221","RF21","T17","S4","Sz1b","CG81","CG474","CG967","CG1118")
+ANI21 <- c("UMA610","ICMP6402","SBV_302782")
+ANI22 <- c("R90","R891")
+ANI23 <- c("RAC06","MA01")
+ANI24 <- c("X17_2069_2c","X17_2069_2b") 
+ANI25 <- c("Yub001")
+ANI26 <- c("a222")
+ANI27 <- c("AOL15")
+ANI28 <- c("CG957")
+ANI29 <- c("MEJ076")
+ANI30 <- c("FPH_AR2")
+ANI31 <- c("GBBC3284")
+ANI32 <- c("OV677")
+ANI33 <- c("YR147")
+ANI34 <- c("Y79_96")
+ANI35 <- c("OK036")
+```
+
+Extract core genes for each genomespecies
+When writing for loop, be very careful about data structure. Here list() and unlist were used a lot.
+
+```{r}
+gs <- list(ANI1,ANI2,ANI3,ANI4,ANI5,ANI6,ANI7,ANI8,ANI9,ANI10,ANI11,ANI12,ANI13, ANI14,ANI15,ANI16,ANI17,ANI18,ANI19,ANI20,ANI21,ANI22,ANI23,ANI24) # all genomespecies based on ANI values (>95%), 11 of them only have one strain, which are not included for pangenome analysis.the reason use list() instead of c(), because there is no vector of vectors, c() function basically concatenate all elements from all vectors; while list will keep the vector structure complete
+
+print(length(gs))
+
+tbgs <- list("tbANI1","tbANI2","tbANI3","tbANI4","tbANI5","tbANI6","tbANI7","tbANI8","tbANI9","tbANI10","tbANI11","tbANI12","tbANI13","tbANI14","tbANI15","tbANI16","tbANI17","tbANI18","tbANI19","tbANI20","tbANI21","tbANI22","tbANI23","tbANI24","tbANI25")
+
+tbgs[[2]]
+
+cors = array()
+for (i in 1:length(gs)){
+     nVar <- substr(tbgs[[i]], 3,8) # remove 'tb' in each character
+     #nVar <- paste(tbgs[[i]],"cor", sep = "")
+     tbgs[[i]] <- tb %>% select(1:3, unlist(gs[i])) # length(gs[i]) =1, need to use unlist.
+     var <- tbgs[[i]]
+     len <- length(var) # how many columns
+     var[var==""] <- NA # assign NA to blank cells
+     var <- var[rowSums(is.na(var[,4:len]))<len-3,] #subset table using conditional expression
+     test_rowsums <- rowSums(is.na(var[,4:len]))
+     test_number <- len-3-test_rowsums
+     var <- cbind(var, "No_genomes"=test_number)
+     cor <- var %>% filter(No_genomes == len-3) # as I want to see unique genes for each group, I should use 100% instead of 95% for core genes. logical comparison must use == instead of =.
+     write.table(cor, file = paste(nVar, "cor.csv", sep = ""),sep = ",",row.names = FALSE) # save core genes of each gs in csv format
+     cor <- list(cor)
+     cors<-append(cors, cor)
+}
+```
+
+
+extract complement genes (total genes - core genes) for each group by removing each group.
+```{r}
+# define a gs list containing all genomespecies
+gs <- list(ANI1=ANI1,ANI2=ANI2,ANI3=ANI3,ANI4=ANI4,ANI5=ANI5,ANI6=ANI6,ANI7=ANI7,ANI8=ANI8,ANI9=ANI9,ANI10=ANI10,ANI11=ANI11,ANI12=ANI12,ANI13=ANI13, ANI14=ANI14,ANI15=ANI15,ANI16=ANI16,ANI17=ANI17,ANI18=ANI18,ANI19=ANI19,ANI20=ANI20,ANI21=ANI21,ANI22=ANI22,ANI23=ANI23,ANI24=ANI24) # assign a name to each ANIgroup/genomespecies is to extract names later. Otherwise I will have to create a names list like the previous block.
+
+cor_comp <- array() # create an empty array to store core_complements genes for each species; even it is an empty array, its length is 1, and has NA value when trying to print.
+nm <- names(gs) # get names of gs list, this way to avoid creating a new list for names like tbgs list.
+
+for (i in 1:length(gs)){
+  newN <- paste(nm[i],"_comp", sep = "")
+  tbn <- newN
+  tbn <- tb %>% select(!unlist(gs[i])) # exclude one specific ANIgroup
+  len <- length(tbn)
+  tbn[tbn==""] <- NA
+  tbn <- tbn[rowSums(is.na(tbn[,15:len]))<len-14,]
+  test_rowsums <- rowSums(is.na(tbn[,15:len])) # count the number of NAs in each row
+  test_number <- len-14 - test_rowsums
+  tbn <- cbind(tbn, "No_genomes" = test_number) # this line is actually unnecessary, I will just keep it.
+  write.table(tbn, file = paste(newN, ".csv", sep = ""), sep = ",", row.names = FALSE)
+  newtb <- list(tbn)
+  cor_comp <- append(cor_comp, newtb)
+}
+```
+
+The above two for loops extract core genes, and complement genes(total-ANIi) for each genomic species.
+
+######################################################################################################
+############################################################################################################
+ANI14 and ANI15 are in Agrobacterium tumefaciens. Now I am going to compare genospecies core genes with all the rest A. tumefaciesn spp. genes. 
+The following codes extract genes in A. tumefaciens complex minus specific gs I want to compare with.
+
+```{r}
+# create gene_presence_absence table only including A. tumefaciens strains, 
+G <- c(ANI1,ANI2,ANI3,ANI4,ANI5,ANI6,ANI7,ANI8,ANI9,ANI10,ANI14,ANI15)
+#print(length(G))
+tb_tumf <- tb %>% select(1:3,all_of(G)) # using an external vector in select is ambiguous, so use all_of()
+len <- length(tb_tumf)
+tb_tumf[tb_tumf==""] <-NA #assign NA to blank cell so it can be used in the next code to be filtered out.
+tb_tumf <- tb_tumf[rowSums(is.na(tb_tumf[,4:len]))<len-3,]
+
+# define a gs list containing all genomespecies
+gs <- list(ANI1=ANI1,ANI2=ANI2,ANI3=ANI3,ANI4=ANI4,ANI5=ANI5,ANI6=ANI6,ANI7=ANI7,ANI8=ANI8,ANI9=ANI9,ANI10=ANI10,ANI14=ANI14,ANI15=ANI15) # assign a name to each genomespecies is to extract names later. Otherwise I will have create a names list like the previous block.
+
+cor_comp <- array() # create an empty array to store core_complements genes for each species; even it is an empty array, its length is 1, and has NA value when trying to print.
+nm <- names(gs) # get names of gs list, this way to avoid creating a new list for names like tbgs list.
+
+for (i in 1:length(gs)){
+  newN <- paste(nm[i],"_comp_tumf", sep = "")
+  tbn <- newN
+  tbn <- tb_tumf %>% select(!unlist(gs[i]))
+  len <- length(tbn) # counting how many columns
+  tbn[tbn==""] <- NA
+  tbn <- tbn[rowSums(is.na(tbn[,4:len]))<len-3,]
+  rowsums_with_NA <- rowSums(is.na(tbn[,4:len]))
+  rowsums_without_NA <- len-3 - rowsums_with_NA
+  tbn <- cbind(tbn, "No_genomes" = rowsums_without_NA) # this line is actually unnecessary, I will just keep it.
+  write.table(tbn, file = paste("/Users/dklabuser/limin/data_analysis/PIRATE/gene_P_absence/311para_on/cor_comp/",newN, ".csv", sep = ""), sep = ",", row.names = FALSE)
+  newtb <- list(tbn)
+  cor_comp <- append(cor_comp, newtb)
+  #dim(tbn)
+}
+```
+
+
+extract gene_presence_absence.csv for each ANI group containing >= 2 strains.
+
+```{r}
+pirate_tb <- read.table("PIRATE.gene_families.ordered.renamed.tsv", header = TRUE, sep = "\t", fill = TRUE,quote = "")
+
+gs <- list(ANI1=ANI1,ANI2=ANI2,ANI3=ANI3,ANI4=ANI4,ANI5=ANI5,ANI6=ANI6,ANI7=ANI7,ANI8=ANI8,ANI9=ANI9,ANI10=ANI10,ANI11=ANI11,ANI12=ANI12,ANI13=ANI13, ANI14=ANI14,ANI15=ANI15,ANI16=ANI16,ANI17=ANI17,ANI18=ANI18,ANI19=ANI19,ANI20=ANI20,ANI21=ANI21,ANI22=ANI22,ANI23=ANI23,ANI24=ANI24)
+
+nm <- names(gs)
+cors = array()
+for (i in 1:length(gs)){
+  nam <- paste0(nm[i],".csv")
+  tbn <- nm[i]
+  tbn <- pirate_tb %>% select(1:22, unlist(gs[[i]]))
+  len <- length(tbn)
+  tbn[tbn==""] <- NA
+  tbn <- tbn[rowSums(is.na(tbn[,23:len]))<len-22,]
+  write.table(tbn, file = paste("/Users/dklabuser/limin/data_analysis/PIRATE/gene_P_absence/311para_on/cor_comp/ANIgroup_subset/",nam, sep = ""), sep=",", row.names = FALSE)
+}
+```
+
+
+create pangenome_core_acc_genes_table of each ANI group
+```{r}
+pirate_tb <- read.table("PIRATE.gene_families.ordered.renamed.tsv", header = TRUE, sep = "\t", fill = TRUE,quote = "")
+
+gs <- list(ANI1=ANI1,ANI2=ANI2,ANI3=ANI3,ANI4=ANI4,ANI5=ANI5,ANI6=ANI6,ANI7=ANI7,ANI8=ANI8,ANI9=ANI9,ANI10=ANI10,ANI11=ANI11,ANI12=ANI12,ANI13=ANI13, ANI14=ANI14,ANI15=ANI15,ANI16=ANI16,ANI17=ANI17,ANI18=ANI18,ANI19=ANI19,ANI20=ANI20,ANI21=ANI21,ANI22=ANI22,ANI23=ANI23,ANI24=ANI24)
+
+gsN <- names(gs)
+
+length(gs)
+fra <- data.frame("speciesN", "#strains", "pangenome", "coreGene", "accGene")
+for (i in 1:length(gs)){
+  spN <- gsN[i]
+  tbspN <- spN
+  tbspN <- tb %>% select(unlist(gs[i]))
+  tbspN[tbspN==""] <- NA
+  len <- length(tbspN) # count number of columns
+  rowsums <- rowSums(is.na(tbspN[,1:len])) # count NA numbers in each row
+  genom <- len-rowsums
+  tbspN <- cbind(tbspN, "No_genome"=genom)
+  tbspN <- tbspN %>% filter(rowsums<len) # get rid of rows with all NAs
+  x <- dim(tbspN)
+  pangenome <- x[1]
+  strainN <- x[2]-1
+  cor <- tbspN %>% filter(No_genome == len)
+  corGen <- dim(cor)[1]
+  accGen <- pangenome - corGen
+  line <- paste(spN,strainN,pangenome,corGen,accGen, sep = ",")
+  line <- unlist(strsplit(line,','))
+  fra <- rbind(fra,line) # add a new line to a defined dataframe
+}
+
+write.table(fra, file ="/Users/dklabuser/limin/data_analysis/PIRATE/gene_P_absence/311para_on/cor_comp/output/gs_cor_acc.csv", sep = ",", row.names = FALSE, col.names = FALSE) # save the dataframe to a table
+```
+
+After running the previous data analysis, I extracted 4 unicor_gene csv files by running 4 different comparisons. These were done in python, see two python files.
+extract_uniCor_compare_all_gene.py
+count_unique_cor_compare_core.py
+
+Based on the unique core genes extracted by the two python files(see output folder). I extracted specific core genes of each ANIgroup using the following codes
+```{r}
+cor <- read.csv("sp_unicor_to_allCor.csv", header = TRUE, sep = ",", fill = TRUE)
+subcor <- select(cor, c(1,3)) # select 1st and 3rd columns
+glimpse(subcor)
+nrow(subcor)
+
+for (row in 1:nrow(subcor) ){
+  name <- subcor[row,1] # extract genome_species name
+  tname <- paste0(name, "cor.csv")
+  genl <- name
+  genl <- subcor[row,2] # extract gene_family list column
+  genl <- strsplit(genl,"\t")
+  genl <- unlist(genl)
+  genl <- c(genl) # create a filter condition
+  gs <- read.table(tname, header = TRUE, sep = ",") # open corresponding core table
+  t1 <- gs %>% filter(Gene %in% genl) # filter based on a vector for a given variable using %in% operator, filter rows
+  write.table(t1, file = paste("/Users/dklabuser/limin/data_analysis/PIRATE/gene_P_absence/311para_on/cor_comp/output/unicor_to_all_cor/",name, "unicor_allcor.csv",sep=""), sep = ",",row.names = FALSE)
+}
+```
+
+
+
+calculate the core and acc ratio of each train in each ANIgroup
+```{r}
+gs <- list(ANI1=ANI1,ANI2=ANI2,ANI3=ANI3,ANI4=ANI4,ANI5=ANI5,ANI6=ANI6,ANI7=ANI7,ANI8=ANI8,ANI9=ANI9,ANI10=ANI10,ANI11=ANI11,ANI12=ANI12,ANI13=ANI13, ANI14=ANI14,ANI15=ANI15,ANI16=ANI16,ANI17=ANI17,ANI18=ANI18,ANI19=ANI19,ANI20=ANI20,ANI21=ANI21,ANI23=ANI23)
+
+loc <- "/Users/dklabuser/limin/Dissertation_papers/codes/chp2_codes/ANIgroup_subset/"
+nm <- names(gs)
+for (i in nm ){
+  file <- paste0(loc,i,".csv")
+  tb <- read.table(file = file, header = TRUE, sep = ",")
+  len <-length(tb)
+  tb <- tb %>% select(23:all_of(len))
+  tb[tb==""] <- NA
+  tbcor <- tb[rowSums(is.na(tb))==0,]
+  corN <- dim(tbcor)[1] # extract core gene numbers
+  total <- colSums(!is.na(tb)) # count total number of genes of each strain
+  accN <- total - corN # count accessory genes of each strain
+  colnm <- names(tb)
+  colnm <- strsplit(colnm, " ")
+  df <- data.frame(colnm) # create a dataframe to store accessory and core genes
+  df <- rbind(df, total) # add the total number genes of each strain to df
+  df <- rbind(df, c(rep(corN,len-22))) # add core gene numbers of each strain to df
+  df <- rbind(df, accN) # add accessory gene numbers of each strain to df
+  df <- rbind(df, round(corN/accN, digits = 2)) # add core_acc gene ratio to the df, round() to keep 2 digits
+  total_acc <- t(df) # transpose the table
+  colnames(total_acc) <- c("strainN",  "totalGeneN","coreGeneN","accessoryGeneN","CorAccRatio")
+  write.table(total_acc, file = paste0("/Users/dklabuser/limin/Dissertation_papers/codes/chp2_codes/ANIgroup_subset/strainCor_accRatio/",i,"_CorAcc.csv"), sep = ",",col.names = TRUE, row.names = FALSE)
+}
+```
+
+calculate variance of each ANI group CorAcc ratio
+Only ANI groups having more than 5 strains were included for ratio variance calculation
+```{r}
+anis <- c("ANI1", "ANI4","ANI7","ANI8","ANI9","ANI12","ANI13","ANI16","ANI17","ANI18","ANI19","ANI20")
+df <- data.frame(c("ANI_group", "CorAcc_ratio_var"))
+
+for (n in anis){
+  tab <- read.csv(paste0("/Users/dklabuser/limin/Dissertation_papers/codes/chp2_codes/ANIgroup_subset/strainCor_accRatio/",n,"_CorAcc.csv"))
+  ratio <- tab[,5]
+  varR <- round(var(ratio),2)
+  newRow <- c(n,varR)
+  df <- cbind(df, newRow)
+}
+df <- t(df)
+
+write.table(df, file = paste0("/Users/dklabuser/limin/Dissertation_papers/codes/chp2_codes/ANIgroup_subset/strainCor_accRatio/CorAccRatioVar.csv"), col.names = FALSE, row.names=FALSE, sep=",")
+```
+
+
+```{r 4clades}
+# cluster1 A. tumefaciens,15 ANI groups: ANI1-10, ANI14, ANI15, ANI21, ANI25, ANI31
+c1 <- c(ANI1, ANI2,ANI3,ANI4,ANI5,ANI6,ANI7,ANI8,ANI9,ANI10, ANI14, ANI15, ANI21, ANI25, ANI31)
+# cluster2 mix, 7 ANI groups: ANI11, ANI13, ANI16, ANI17, ANI22, ANI29, ANI30
+c2 <- c(ANI11, ANI13, ANI16, ANI17, ANI22, ANI29, ANI30)
+# cluster3,A. rhizogenes 6 ANI groups: ANI 12, ANI24, ANI 32-35
+c3 <- c(ANI12, ANI24, ANI32, ANI33, ANI34, ANI35)
+# cluster4, A. vitis 4 ANI groups: ANI 18-20, ANI28
+c4 <- c(ANI18, ANI19, ANI20,ANI28)
+
+```
+
+create pangenome table for each clade
+```{r}
+tb1 <- read.table("pirate_geneFam_ordered_rename_roary.csv", header = TRUE, sep = ",")
+
+v <- list(c1=c1,c2=c2,c3=c3,c4=c4)
+
+# create a dataframe to save pangenome of each clade.
+fra <- data.frame("cladeN", "#strains", "pangenome", "coreGene", "accGene")
+
+for (i in 1:4){
+tbc1 <- tb1 %>% select(1:14, all_of(unlist(v[[i]])))
+len <- length(tbc1) # number of columns
+tbc1[tbc1==""] <- NA
+tbc1 <- tbc1[!(rowSums(is.na(tbc1[,15:len]))==len-14),] # remove rows only having NAs
+
+rowSna <- rowSums(is.na(tbc1[,15:len])) # count NAs numbers of each row,
+genomN <- len - rowSna # count how many genomes were present in each gen family
+tbc2 <- cbind(tbc1, "No_genomes"=genomN) # add a column counting number of strains of each gene family
+tbc2 <- tbc2 %>% filter(No_genomes == len)
+dim(tbc2)[2]
+cladN <- paste0("clade", i)
+str_No <- len-14
+pangenome <- dim(tbc1)[1]
+cor_No <- dim(tbc2)[1]
+acc_No <- pangenome - cor_No
+line <- paste(cladN, str_No, pangenome, cor_No, acc_No, sep = ",")
+line <- unlist(strsplit(line,","))
+fra <- rbind(fra, line)
+}
+
+write.table(fra,file = "/Users/dklabuser/limin/data_analysis/PIRATE/gene_P_absence/311para_on/4clusters_NO_coreGenFam/clades_pangenome.csv", sep = ",", row.names = FALSE, col.names = FALSE)
+```
+
+Prepare data for Gene Ontology(GO) analysis. The following chunk extract accessory genes for each clade. The core genes of all 311 agro were excluded (see following codes)
+filter gene_presence_absence of four main clusters
+```{r clade accessory gene families}
+tb1 <- read.table("pirate_geneFam_ordered_rename_roary.csv", header = TRUE, sep = ",")
+
+# remove core gene families using filter
+tb1 <- tb1 %>% filter(!(No..isolates==311)) 
+v <- list(c1=c1,c2=c2,c3=c3,c4=c4)
+
+for (i in 1:4){
+tbc1 <- tb1 %>% select(1:14, all_of(unlist(v[[i]])))
+len <- length(tbc1)
+tbc1[tbc1==""] <- NA
+tbc1 <- tbc1[!(rowSums(is.na(tbc1[,15:len]))==len-14),]
+write.table(tbc1, file = paste0("/Users/dklabuser/limin/data_analysis/PIRATE/gene_P_absence/311para_on/4clusters_NO_coreGenFam/c",i,".csv"), sep = ",", row.names = FALSE)
+}
+```
+
+Extract core genes of each clade. The final core gene numbers need to include core genes of 311 genomes which were excluded in c1-c4.csv
+cluster/clade1--tumf; c2--mix; c3--rhizogenes; c4--vitis
+The outputs were then used as input in a phython script to finde unique core genes for each clade.
+There are 1445 gene families found in all 311 genomes
+```{r clade.core.genes}
+for (i in 1:4){
+  lk1 = "/Users/dklabuser/limin/Dissertation_papers/codes/chp2_codes/4clusters_NO_coreGenFam/c"
+  path1 <- paste0(lk1, i, ".csv")
+  clade <- paste0("clade",i)
+  clade <- read.table(path1, header = TRUE, sep = ",")
+  clade <- clade %>% select(!(4:14)) # remove some annoying middle columns
+  NoStrs <- dim(clade)[2] - 3 # count the total number of strains
+  len <- dim(clade)[2]
+  No_genome <- NoStrs - rowSums(is.na(clade[,4:len])) # create a nuw column containing number of strains
+  clade <- cbind(clade, NoGenomes = No_genome) # combine the new column to the table
+# filter unique core genes for each clade
+  c1UniqGen <- clade %>% filter(NoGenomes == NoStrs) %>% select(!NoGenomes)
+  lk2 = "/Users/dklabuser/limin/Dissertation_papers/codes/chp2_codes/4clusters_NO_coreGenFam/cladeUniqGens/clade"
+  path2 <- paste0(lk2,i,"CorGens.csv")
+  write.table(c1UniqGen, file = path2, row.names = FALSE, col.names = FALSE, sep = ",")
+}
+```
+
+
+filter unique core genes of each clade and save to a csv file
+```{r}
+cor <- read.csv("/Users/dklabuser/limin/Dissertation_papers/codes/chp2_codes/4clusters_NO_coreGenFam/cladeUniqGens/cladeCor_to_cladeCor.csv", header = TRUE, sep = ",", fill = TRUE)
+subcor <- select(cor, c(1,4)) # select 1st and 3rd columns
+
+for (row in 1:nrow(subcor) ){
+  name <- subcor[row,1] # extract genome_species name
+  tname <- paste0("c",row,".csv")
+  genl <- name
+  genl <- subcor[row,2] # extract gene_family list column
+  genl <- strsplit(genl,"\t")
+  genl <- unlist(genl)
+  genl <- c(genl) # create a filter condition
+  clad <- read.table(paste0("/Users/dklabuser/limin/Dissertation_papers/codes/chp2_codes/4clusters_NO_coreGenFam/",tname), header = TRUE, sep = ",") # open corresponding core table
+  t1 <- clad %>% filter(Gene %in% genl) # filter based on a vector for a given variable using %in% operator, filter rows
+  write.table(t1, file = paste("/Users/dklabuser/limin/Dissertation_papers/codes/chp2_codes/4clusters_NO_coreGenFam/cladeUniqGens/",name, "unicor.csv",sep=""), sep = ",",row.names = FALSE) # save unique core genes of each gs in a csv file
+ # write.table(t1, file = paste("/Users/dklabuser/limin/data_analysis/PIRATE/gene_P_absence/311para_on/cor_comp/output/unicor_to_all_cor/",name, "unicor_allcor.csv",sep=""), sep = ",",row.names = FALSE)
+}
+```
+
+###########################################
+generating pangenome graphs
+
+```{r}
+setwd("/Users/dklabuser/limin/data_analysis/fastANI/311AgroANI")
+getwd()
+library(ggplot2)
+library(reshape2)
+library(RColorBrewer)
+library(tidyverse)
+library(gplots)
+```
+
+plot the average of pangenome, corGen, accGen of each ANI.
+```{r}
+df_pan <- read.table("gs_cor_acc.csv", header = TRUE, sep = ",")
+names(df_pan)
+class(df_pan)
+sum(df_pan$strains)
+# reshape data from wide to long format
+df <- df_pan %>% pivot_longer(c("pangenome","coreGene", "accGene")) 
+glimpse(df)
+str(df)
+
+# to reorder X-axis in a way I want using following codes
+print(unique(df$speciesN))
+df$speciesN <- factor(df$speciesN, levels = c("ANI1", "ANI2","ANI3", "ANI4", "ANI5", "ANI6","ANI7", "ANI8", "ANI9","ANI10","ANI11","ANI12","ANI13","ANI14","ANI15", "ANI16","ANI17","ANI18","ANI19","ANI20","ANI21","ANI23"))
+
+ggplot(df,
+       aes(x = speciesN,
+           y = value,
+           color = name)) +
+  scale_color_brewer(name = "GeneClass",
+                     type = "qual",
+                     palette = "Set1") +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90,
+                                   size = 5)) +
+  labs(#title = "Pangenome of Agro ANI groups",
+         x = "ANI groups (ANI >= 95%)",
+       y = " Number of gene families")
+ggsave(filename = "/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter2_pangenome/pangenome_graphs/pan_cor_acc.jpeg", dpi = "print")
+
+```
+
+
+plot cor/acc gene ratio of each ANI, only ANIgroups containing more than 5 strains are included for analysis.
+12 ANI groups were included
+```{r}
+# create a df for storing data
+df <- c("ANIgroup","strainN", "pangenome", "coreG", "accG", "corAccRatio")
+
+# loop all csv files to combine them into one csv file
+# ANIgroups >5 strains are considered
+for (i in c(1,4,7,8,9,12,13,16,17,18,19,20)){
+  name <- paste0("./strainCor_accRatio/ANI",i,"_CorAcc.csv")
+  strain <- read.table(name, header = TRUE, sep = ",")
+  col1 <- c(rep(paste0("ANI",i), nrow(strain))) # create an ANI group vector
+  strain <- cbind(col1, strain) # combine ANIgroup to each table
+  df <- rbind(df, strain) # combine each csv file
+}
+
+str(df)
+# modify row and column names
+colnames(df) <- c(df[1,])
+df <- df[-1,]
+rownames(df) <- c(1:266)
+
+unique(df$ANIgroup)
+# reorder X-axis label
+df$ANIgroup <- factor(df$ANIgroup, levels = c("ANI1", "ANI4","ANI7" ,"ANI8" ,"ANI9", "ANI12","ANI13","ANI16", "ANI17","ANI18","ANI19","ANI20"))
+
+# create violin plot
+df$corAccRatio <- as.numeric(df$corAccRatio)
+ggplot(df,
+       aes(x= ANIgroup,
+           y = corAccRatio,
+           color = ANIgroup)) +
+  geom_violin() +
+  scale_y_continuous(breaks = c(0,2,4,6,8)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+#  labs(title = "Core gene and accessory gene ratio of ANI groups")
+
+ggsave(filename = "/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter2_pangenome/pangenome_graphs/corAccR_violin.jpeg",dpi = "print")
+
+# create boxplot
+ggplot(df,
+       aes(x= ANIgroup,
+           y = corAccRatio,
+           color = ANIgroup)) +
+  geom_boxplot() +
+  scale_y_continuous(breaks = c(0,2,4,6,8)) +
+  theme(axis.text.x = element_text(angle = 90)) 
+#  labs(title = "Core gene and accessory gene ratio of ANI groups")
+ggsave(filename = "//Users/dklabuser/limin/Dissertation_papers/dissertation/chapter2_pangenome/pangenome_graphs/corAccR_boxplot.jpeg",dpi = "print")
+
+```
+
+divide ANI groups based on sample size, plot subset core/acc ratio; plot subset pangeomoe/core/acc
+```{r}
+sub1 <- c(1,4,7,12,20) # greater than 20 strains in each ANI group
+#sub2<- c(8,9,13,16,17,18,19) # between 6 to 19 strains of each ANI group
+
+# create a df for storing data
+df_sub <- c("ANIgroup","strainN", "pangenome", "coreG", "accG", "corAccRatio")
+
+# loop all csv files to combine them into one csv file
+# ANIgroups >5 strains are considered
+for (i in c(1,4,7,12,20)){
+#for (i in c(8,9,13,16,17,18,19)){ # replace with each sub vector and changed ggsave saved file name at the same time
+  name <- paste0("./strainCor_accRatio/ANI",i,"_CorAcc.csv")
+  strain <- read.table(name, header = TRUE, sep = ",")
+  col1 <- c(rep(paste0("ANI",i), nrow(strain))) # create an ANI group vector
+  strain <- cbind(col1, strain) # combine ANIgroup to each table
+  df_sub <- rbind(df_sub, strain) # combine each csv file
+}
+
+# modify row and column names
+colnames(df_sub) <- c(df_sub[1,])
+df_sub <- df_sub[-1,]
+rownames(df_sub) <- c(1:nrow(df_sub))
+
+str(df_sub)
+
+# reorder X-axis labels
+unique(df_sub$ANIgroup)
+df_sub$ANIgroup <- factor(df_sub$ANIgroup, levels = c("ANI1","ANI4","ANI7","ANI12","ANI20"))
+
+# create violin plot fro cor/acc ratio
+df_sub$corAccRatio <- as.numeric(df_sub$corAccRatio)
+ggplot(df_sub,
+       aes(x= ANIgroup,
+           y = corAccRatio,
+           color = ANIgroup)) +
+  geom_violin() +
+  scale_y_continuous(breaks = c(0,2,4,6,8)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(#title = "Core gene and accessory gene ratio of ANI groups",
+    y = "Number of gene families") +
+  ylim(0,10) # corAccRatio is between 0 to 10
+
+ggsave(filename = "/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter2_pangenome/pangenome_graphs/corAccR_sub1_violin.jpeg",dpi = "print")
+
+df_indi <- df_sub[,c(-2,-6)]
+names(df_indi)
+
+df_indi <- df_indi %>% pivot_longer(c("pangenome","coreG", "accG"))
+#names(df)
+df_indi$value <- as.numeric(df_indi$value)
+summary(df_indi)
+
+# reorder X-axis labels
+unique(df_indi$ANIgroup)
+df_indi$ANIgroup <- factor(df_indi$ANIgroup, levels = c("ANI1","ANI4","ANI7","ANI12","ANI20"))
+
+ggplot(df_indi,
+       aes(x = ANIgroup,
+           y = value,
+           color = name)) +
+  scale_color_brewer(name = "GeneClass",
+                     type = "qual",
+                     palette = 6) +
+  geom_boxplot() +
+  facet_wrap(~name) +
+  theme(axis.text.x = element_text(angle = 90, size = 6))+
+  labs(x = "ANI groups",
+       y = "Number of gene families") +
+ggsave(filename = "/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter2_pangenome/pangenome_graphs/PanCorAcc_boxplot_sub1.jpeg",dpi = "print")
+
+```
+
+
+```{r}
+#sub1 <- c(1,4,7,12,20) # greater than 20 strains in each ANI group
+sub2<- c(8,9,13,16,17,18,19) # between 6 to 19 strains of each ANI group
+
+# create a df for storing data
+df_sub <- c("ANIgroup","strainN", "pangenome", "coreG", "accG", "corAccRatio")
+
+# loop all csv files to combine them into one csv file
+# ANIgroups >5 strains are considered
+for (i in c(8,9,13,16,17,18,19)){ # replace with each sub vector and changed ggsave saved file name at the same time
+  name <- paste0("./strainCor_accRatio/ANI",i,"_CorAcc.csv")
+  strain <- read.table(name, header = TRUE, sep = ",")
+  col1 <- c(rep(paste0("ANI",i), nrow(strain))) # create an ANI group vector
+  strain <- cbind(col1, strain) # combine ANIgroup to each table
+  df_sub <- rbind(df_sub, strain) # combine each csv file
+}
+
+# modify row and column names
+colnames(df_sub) <- c(df_sub[1,])
+df_sub <- df_sub[-1,]
+rownames(df_sub) <- c(1:nrow(df_sub))
+
+# reorder X-axis labels
+unique(df_sub$ANIgroup)
+df_sub$ANIgroup <- factor(df_sub$ANIgroup, levels = c("ANI8", "ANI9", "ANI13","ANI16","ANI17","ANI18","ANI19"))
+
+# create violin plot fro cor/acc ratio
+df_sub$corAccRatio <- as.numeric(df_sub$corAccRatio)
+ggplot(df_sub,
+       aes(x= ANIgroup,
+           y = corAccRatio,
+           color = ANIgroup)) +
+  geom_violin() +
+  scale_y_continuous(breaks = c(0,2,4,6,8)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+#  labs(title = "Core gene and accessory gene ratio of ANI groups")
+
+ggsave(filename = "/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter2_pangenome/pangenome_graphs/corAccR_sub2_violin.jpeg",dpi = "print")
+
+df_indi <- df_sub[,c(-2,-6)]
+names(df_indi)
+
+df_indi <- df_indi %>% pivot_longer(c("pangenome","coreG", "accG"))
+#names(df)
+df_indi$value <- as.numeric(df_indi$value)
+summary(df_indi)
+
+# reorder X-axis labels
+unique(df_indi$ANIgroup)
+df_indi$ANIgroup <- factor(df_indi$ANIgroup, levels = c("ANI8","ANI9","ANI13","ANI16","ANI17","ANI18","ANI19"))
+
+ggplot(df_indi,
+       aes(x = ANIgroup,
+           y = value,
+           color = name)) +
+  scale_color_brewer(name = "GeneClass",
+                     type = "qual",
+                     palette = 6) +
+  geom_boxplot() +
+  facet_wrap(~name) +
+  theme(axis.text.x = element_text(angle = 90, size = 6)) +
+  labs(x = "ANI groups",
+       y = "Number of gene families")
+ggsave(filename = "/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter2_pangenome/pangenome_graphs/PanCorAcc_boxplot_sub2.jpeg",dpi = "print")
+
+```
+
+
+plot pan, core, acc genes of individuals of each ANI
+```{r}
+df_indi <- df[,c(-2,-6)]
+names(df_indi)
+
+df_indi <- df_indi %>% pivot_longer(c("pangenome","coreG", "accG"))
+#names(df)
+df_indi$value <- as.numeric(df_indi$value)
+summary(df_indi)
+str(df_indi)
+
+# reorder X-axis labels
+print(unique(df_indi$ANIgroup))
+df_indi$ANIgroup <- factor(df_indi$ANIgroup, levels = c("ANI1", "ANI4","ANI7", "ANI8","ANI9","ANI12","ANI13","ANI16","ANI17","ANI18","ANI19","ANI20"))
+
+
+ggplot(df_indi,
+       aes(x = ANIgroup,
+           y = value,
+           color = name)) +
+  scale_color_brewer(name = "GeneClass",
+                     type = "qual",
+                     palette = 6) +
+  geom_boxplot() +
+  facet_wrap(~name) +
+  theme(axis.text.x = element_text(angle = 90, size = 6)) +
+  labs(x = "ANI groups",
+       y = "Number of gene families")
+ggsave(filename = "/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter2_pangenome/pangenome_graphs/PanCorAcc_boxplot.jpeg",dpi = "print")
+```
+
+
+####################################################################################
+ANI heatmap annotated with ANI groups
+```{r}
+# reshape data
+library(reshape2)
+library(RColorBrewer)
+library(pheatmap)
+
+library(ape)
+library(ggplot2) 
+library(ggdendro)
+library(dendroextras)
+library(reshape2) 
+library(scales)
+library(grid)
+library(gridExtra)
+library(gtable)
+```
+
+
+This document contains the code used to generate heat maps of ANI values. I made some heat maps using pheatmap for data exploration. 
+
+## Data Import
+
+Imported ANI data into R starting from a csv file called ANI_results.csv. Reshaped data from short to wide format. I exported this from the 311agro_heatmap data. I changed the ANI values so they had 3 digits following the decimal point (i.e., 99.987) before importing.  
+
+```{r ANI values}
+ANI_results <- read.csv("ANI_results.csv", header=TRUE)
+head(ANI_results)
+
+# reshape data from long to wide format.
+ANI_df <- dcast(ANI_results, query ~ reference, value.var = "ANI") 
+rownames(ANI_df) <- ANI_df[,1]
+ANI_df <- ANI_df[,-1] # remove first column with names
+class(ANI_df) 
+ANI_df[1:5,1:5]
+
+# convert dataframe to numeric matrixt
+ANI_matrix <- data.matrix(ANI_df) 
+class(ANI_matrix)
+ANI_matrix[1:5,1:5]
+
+```
+
+## Imported ANI groups and cluster groups
+
+For list of ANI groups, copied from the coreGene.Rmd file. Removed the "X" before numbers and replaced "_" with "." to match names in ANI_matrix and ANI_df. Also copied code for the clusters. 
+
+Noticed the number of taxa in clusters is not the same as in all ANI groups. The following groups are not included in clusters:  ANI23, ANI26, ANI27.These were taxa that were part of the outgroup in the core gene phylogeny. 
+
+```{r ANI groups}
+ANI1 <- c("10MFC","S56","But001","Sta004","CL001","CNPSo675","1D1108","SBV_303932","AS1I51","AS1E51","AS1F51","ATCC31700","SBV_38","AS1D61","AS1F61","Yub002","H13_3","RS6","B41","CFBP5771","LBA4213","Ach5","ATCC4720","WRT31","TT111","A6","str_15955","5A","P4","ICMP4364")
+ANI2 <- c("S33a","CC001","FDAARGOS_525","CFBP5494")
+ANI3 <- c("SUL3scf","CFBP6624","CFBP6623","LC34")
+ANI4 <- c("AS1G61","ICMP5856T","B6","NCTC13543","1D1460","EML4","Sta005","CHLDO","CCNWGS0286","ICMP6475","str_183","12D1","1D1526","Kerr14","Yol002","Yol001","HAMBI_105","But002","SJ002","Sta001","Sta003","SJ001","Tul001","Gle001","Sta002","Sut002","Sut001","Gle002","LMG215","CCUG3354","NCIB9042","Teh002","Tul004","CFBP5621","LAD9","NCPPB3001","G9TT510_2","LMG140","Teh001","UNC420","224MFT","str_719389")
+ANI5 <- c("CFBP6625","CFBP6626")
+ANI6 <- c("CFBP5877","CFBP5499","NCPPB925")
+ANI7 <- c("Kin003","D14","T29","T3F4","TS45","JL28","C13","LY4","CFBP4996","TS43","NCPPB1641","GW4","Tul002","Cherry2E22","CFBP7129","YIC4121","SJ003","Zutra31","CNPSo3391","CNPSo2736","MAFF301724","RV3","AS1H51","1D1609")
+ANI8 <- c("1D132","1D132b","C58","F4","NFIX02","Arqua","NFIX01","ARqua1","Kin001","N40_94","N33_94","str_12D13","12D13","PDC82","Di1525a","ATCC31749","J_07","str_11546","str_2788")
+ANI9 <- c("AGR1_1","CFBP5506","Hayward0363","CFBP5507","YIC5082","NCPPB2657","GBBC3283")
+ANI10 <- c("Tul003","S2","CFBP6927","M109cC1478")
+ANI11 <- c("AF310","CFBP5473","CFBP5477") # lyr = larrymoorel
+ANI12 <- c("YR530","RO2.2","L20_94","M2_73","J5a_93","J10B_93","AS1E61","B1_74","AQ11_95","A125","A1_90","T5_73","CF263","RO11.4","I2_75","CF262","ICMP4617","Di1462","CG101_95","D1_76","D2_76","ATCC15834","LMG152","ATCC15834b","CM65_95","A4","B147_94","AS1C61","CA84_95","D108_85","B49C_83","D100_85","B4_73","K6_73","R10.1","U167_95","G10.5","H16_79","AS1J51","AL.21.2","PVM1.5","PVM10.5","D1_94","D10b_87","AR13K_71","L29_94","R1.1","W1.1","CP182_95","LMG63","N64_94","W1.4","AF44_96","AP82_95","LMG150","AS10_95","NBRC13257","ICMP7243","LMG149","RO10.5","CM80_95","CM79_95","K84","NCIB8196","A13.1","Di1411","P23_94","C16_80","K95_95","X1_95","K27","Z4_95","S32_96","A6.4","T155_95","P1_75") # rizos = rhizogenes
+ANI13 <- c("DSM25558","DSM25559","B203","SBV_31","SBV_32","SBV33","NCPPB1650")
+ANI14 <- c("DE0009","KCJK1736") # no class info in NCBI.== no info
+ANI15 <- c("Kin002","NCPPB2659","MAFF210266") 
+ANI16 <- c("DE0067","DE0068","ICMP17598","TPD7009","TPD7005","RZME10") 
+ANI17 <- c("TR3","Eu2_1NK","Eu3_2RS","A19_93","AS1A61","Eu3_2NK") 
+ANI18 <- c("CG475","CG988","AB3","AT6","CG415","CG102","CG412","ICMP10754","SBV_10752","CG1000","K306","NCPPB3554","CG516")
+ANI19 <- c("CG108","CG118","CG989","CG1013","T393_94","Rr4","CG47","Ni1","T60_94","T267_94","P86_93","AB4","CG964","CG49")
+ANI20 <- c("F2_5","CG56","T268_95","BM37_95","AV25_95","CG78","CG78b","CG678","CG1103","SF93","V80_94","AS1H41","CG98","NW221","RF21","T17","S4","Sz1b","CG81","CG474","CG967","CG1118")
+ANI21 <- c("UMA610","ICMP6402","SBV_302782")
+ANI22 <- c("R90","R891")
+ANI23 <- c("RAC06","MA01")
+ANI24 <- c("17_2069_2c","17_2069_2b") 
+ANI25 <- c("Yub001")
+ANI26 <- c("a222")
+ANI27 <- c("AOL15")
+ANI28 <- c("CG957")
+ANI29 <- c("MEJ076")
+ANI30 <- c("FPH_AR2")
+ANI31 <- c("GBBC3284")
+ANI32 <- c("OV677")
+ANI33 <- c("YR147")
+ANI34 <- c("Y79_96")
+ANI35 <- c("OK036")
+
+# cluster1 A. tumefaciens,15 ANI groups: ANI1-10, ANI14, ANI15, ANI21, ANI25, ANI31
+c1 <- c(ANI1, ANI2, ANI3, ANI4, ANI5, ANI6, ANI7, ANI8, ANI9, ANI10, ANI14, ANI15, ANI21, ANI25, ANI31)
+# cluster2 mix, 7 ANI groups: ANI11, ANI13, ANI16, ANI17, ANI22, ANI29, ANI30
+c2 <- c(ANI11, ANI13, ANI16, ANI17, ANI22, ANI29, ANI30)
+# cluster3,A. rhizogenes 6 ANI groups: ANI 12, ANI24, ANI 32-35
+c3 <- c(ANI12, ANI24, ANI32, ANI33, ANI34, ANI35)
+# cluster4, A. vitis 4 ANI groups: ANI 18-20, ANI28
+c4 <- c(ANI18, ANI19, ANI20, ANI28)
+
+# checking that the names match
+
+ANI_df_names <- rownames(ANI_df)
+ANI_df_names <- sort(ANI_df_names) # reordered to allow an easy comparison
+imported_names <- c(c1, c2, c3, c4, ANI23, ANI26, ANI27)
+imported_names <- sort(imported_names)
+ANI_df_names%in%imported_names
+remove(ANI_df_names, imported_names)
+
+```
+
+## Made colors for each strain
+
+We may not use these, but decided to make just in case. I like to make color palettes using RColorBrewer palettes. So, the "Paired" set below is from that package.  
+
+```{r color coding}
+# make a data.frame with the ANI groups and genome names
+
+ANI_groups <- do.call(list, mget(paste0("ANI",1:35)))
+
+ANI_groups <- data.frame(ANI_grp = rep(names(ANI_groups), 
+                                       sapply(ANI_groups, length)),
+                 Strains = unlist(ANI_groups))
+
+# add a color column to the data frame and make row names the strains names
+
+getPalette <- colorRampPalette(brewer.pal(12,"Paired"))
+colors <- rev(getPalette(35))
+barplot(1:35, col=colors)
+ANI_colors <- cbind(colors, "ANI_grp"=paste("ANI",1:35,sep=""))
+ANI_colors <- merge(ANI_groups, ANI_colors, by="ANI_grp")
+rownames(ANI_colors) <- ANI_colors$Strains
+
+# reorder data frame, so it is the same order as ANI_matrix 
+
+ANI_colors <- ANI_colors[match(rownames(ANI_matrix), ANI_colors$Strains),]
+
+
+# assign colors for heat map cells - yellow to red  
+
+# define color palette
+hm_colors <- colorRampPalette(c("#FFFF99","#FF9933","#CC0033"), space="rgb")(100) # yellow to red 
+#hm_colors <- colorRampPalette(c("#FFCCCC","#FF3333","#CC0033"), space="rgb")(100) # light red to dark red 
+barplot(1:100, col=hm_colors) # plotting to see color range 
+
+```
+
+## Used pheatmap to make a heat map 
+
+Decided to go with pheatmap because it was hard to get heatmap.2 margins to work. These maps are not very "pretty" because it is hard to adjust the position of the legend, but they are useful for exploring the data. If you like these heat maps, I suggest we remove the dendrogram, shrink the width and/or height of the cells to make printing a smaller graph possible, and manually map on the ANI1-35 labels.  
+
+Images will print to html, but also saved them in high resolution as PNGs. PNG files have the ANI group legend. 
+
+```{r pheatmap heat maps}
+
+# for adding row and side colors, need a data frame containing strain names as the rows and the ANI groups in the next column 
+
+phm_grps <- data.frame("ANI_grp" = ANI_colors$ANI_grp)
+rownames(phm_grps) <- rownames(ANI_colors)
+
+# Need to make a list object for assigning colors
+# Please note, the colors in this palette may not match the color assignments in ANI_colors 
+
+phm_cols <- colorRampPalette(getPalette(length(unique(ANI_colors$ANI_grp))))
+ann_col <- phm_cols(length(unique(ANI_colors$ANI_grp)))
+names(ann_col) <- unique(ANI_colors$ANI_grp)
+ann_col <- list(ANI_grp = ann_col)
+
+# use pheatmap to make a plot 
+
+phm1 <- pheatmap(ANI_matrix, annotation_col = phm_grps, 
+                 annotation_row = phm_grps, annotation_colors = ann_col,
+                 annotation_names_col = FALSE, annotation_names_row = FALSE, 
+                 fontsize=5, fontsize_row = 2, fontsize_col = 2)
+
+phm1
+
+save_pheatmap_png <- function(x, filename, res=1200, width=16, height=12, units = "in") {
+  png(filename, width = width, height = height, res = res, units= units)
+  grid::grid.newpage()
+  grid::grid.draw(x$gtable)
+  dev.off()
+}
+
+save_pheatmap_png(phm1, "/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter2_pangenome/ANI_heatmap_311_Strains/pheatmap/phm1.png")
+
+# this next version is to use the cut function of pheatmap. For the most part, it follows the ANI clusters. 
+
+phm2 <- pheatmap(ANI_matrix, annotation_col = phm_grps, annotation_row = phm_grps, 
+                 annotation_colors = ann_col, annotation_names_col = FALSE, 
+                 annotation_names_row = FALSE, fontsize=5, fontsize_row = 2, 
+                 fontsize_col = 2, cutree_rows = 35, cutree_cols = 35)
+
+phm2
+
+save_pheatmap_png(phm2, "/Users/dklabuser/limin/Dissertation_papers/dissertation/chapter2_pangenome/ANI_heatmap_311_Strains/pheatmap/phm2_cuts.png")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
